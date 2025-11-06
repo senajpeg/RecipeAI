@@ -4,5 +4,9 @@
     <string name="email">Email</string>
     <string name="sifre">Şifre</string>
     <string name="kaydol">Kayıt Ol</string>
+    <string name="giris_yap">Giriş Yap</string>
+    <string name="google_ile_devam_et">Google ile devam et</string>
+    <string name="sifremi_unuttum">Şifremi Unuttum</string>
     <string name="already_have_account">Zaten bir hesabın var mı? Giriş Yap</string>
+    <string name="have_an_account_sign_up">Hesabın yok mu? Kaydol</string>
 </resources>
