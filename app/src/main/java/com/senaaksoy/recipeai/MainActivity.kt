@@ -11,20 +11,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.senaaksoy.recipeai.navigation.RecipeAiNavigation
 import com.senaaksoy.recipeai.ui.theme.RecipeAITheme
+import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
 
-@HiltAndroidApp
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             RecipeAITheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-
+                    RecipeAiNavigation()
                 }
             }
         }
     }
-}
+

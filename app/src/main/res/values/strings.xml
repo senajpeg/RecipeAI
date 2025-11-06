@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">RecipeAI</string>
+    <string name="ad_soyad">Ad-Soyad</string>
+    <string name="email">Email</string>
+    <string name="sifre">Şifre</string>
+    <string name="kaydol">Kayıt Ol</string>
+    <string name="already_have_account">Zaten bir hesabın var mı? Giriş Yap</string>
 </resources>
