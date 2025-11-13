@@ -4,10 +4,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
+import com.senaaksoy.recipeai.presentation.screens.auth.ForgotPasswordScreen
+import com.senaaksoy.recipeai.presentation.screens.auth.ResetPasswordScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignInScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignUpScreen
 import com.senaaksoy.recipeai.presentation.screens.splash.SplashScreen
@@ -55,11 +60,27 @@ fun RecipeAiNavigation() {
             composable(route = Screen.ProfileScreen.route) {
 
             }
-            composable(route = Screen.ResetPasswordScreen.route) {
-
+            composable(
+                route = Screen.ResetPasswordScreen.route,
+                arguments = listOf(
+                    navArgument("token") {
+                        type = NavType.StringType
+                    }
+                ),
+                deepLinks = listOf(
+                    navDeepLink {
+                        uriPattern = "recipeai://reset-password/{token}"
+                    }
+                )
+            ) { backStackEntry ->
+                val token = backStackEntry.arguments?.getString("token") ?: ""
+                ResetPasswordScreen(
+                    navController = navController,
+                    token = token
+                )
             }
             composable(route = Screen.ForgotPasswordScreen.route) {
-
+                ForgotPasswordScreen(navController = navController)
             }
 
 

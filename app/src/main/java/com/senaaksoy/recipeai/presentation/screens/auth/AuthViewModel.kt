@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.senaaksoy.recipeai.domain.model.User
 import com.senaaksoy.recipeai.utills.Resource
 import com.senaaksoy.recipeai.utills.TokenManager
-import com.yourname.recipeai.data.repository.AuthRepository
+import com.senaaksoy.recipeai.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,15 +21,43 @@ class AuthViewModel @Inject constructor(
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
-    // Register State
+    // States
     private val _registerState = MutableStateFlow<Resource<User>?>(null)
     val registerState: StateFlow<Resource<User>?> = _registerState
 
-    // Login State
     private val _loginState = MutableStateFlow<Resource<User>?>(null)
     val loginState: StateFlow<Resource<User>?> = _loginState
 
-    // SignUp Form States
+    private val _googleSignInState = MutableStateFlow<Resource<User>?>(null)
+    val googleSignInState: StateFlow<Resource<User>?> = _googleSignInState
+
+    private val _forgotPasswordState = MutableStateFlow<Resource<String>?>(null)
+    val forgotPasswordState: StateFlow<Resource<String>?> = _forgotPasswordState
+
+    private val _resetPasswordState = MutableStateFlow<Resource<String>?>(null)
+    val resetPasswordState: StateFlow<Resource<String>?> = _resetPasswordState
+
+    // Forgot Password
+    var forgotPasswordEmail by mutableStateOf("")
+        private set
+    var forgotPasswordEmailError by mutableStateOf("")
+        private set
+
+    // Reset Password
+    var resetPasswordNewPassword by mutableStateOf("")
+        private set
+    var resetPasswordConfirmPassword by mutableStateOf("")
+        private set
+    var resetPasswordVisible by mutableStateOf(false)
+        private set
+    var resetPasswordConfirmVisible by mutableStateOf(false)
+        private set
+    var resetPasswordError by mutableStateOf("")
+        private set
+    var resetPasswordConfirmError by mutableStateOf("")
+        private set
+
+    // SignUp
     var signUpName by mutableStateOf("")
         private set
     var signUpEmail by mutableStateOf("")
@@ -38,8 +66,6 @@ class AuthViewModel @Inject constructor(
         private set
     var signUpPasswordVisible by mutableStateOf(false)
         private set
-
-    // SignUp Validation Errors
     var signUpNameError by mutableStateOf("")
         private set
     var signUpEmailError by mutableStateOf("")
@@ -47,149 +73,238 @@ class AuthViewModel @Inject constructor(
     var signUpPasswordError by mutableStateOf("")
         private set
 
-    // SignIn Form States
+    // SignIn
     var signInEmail by mutableStateOf("")
         private set
     var signInPassword by mutableStateOf("")
         private set
     var signInPasswordVisible by mutableStateOf(false)
         private set
-
-    // SignIn Validation Errors
     var signInEmailError by mutableStateOf("")
         private set
     var signInPasswordError by mutableStateOf("")
         private set
 
-    // SignUp Functions
+    // ========== VALIDATION HELPERS ==========
+
+    private companion object {
+        val EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+        const val MIN_PASSWORD_LENGTH = 6
+        const val MIN_NAME_LENGTH = 3
+    }
+
+    private fun validateEmail(email: String): String? = when {
+        email.isBlank() -> "Email boş olamaz"
+        !email.matches(EMAIL_REGEX) -> "Geçersiz email formatı"
+        else -> null
+    }
+
+    private fun validatePassword(password: String): String? = when {
+        password.isBlank() -> "Şifre boş olamaz"
+        password.length < MIN_PASSWORD_LENGTH -> "Şifre en az $MIN_PASSWORD_LENGTH karakter olmalı"
+        else -> null
+    }
+
+    private fun validateName(name: String): String? = when {
+        name.isBlank() -> "Ad soyad boş olamaz"
+        name.length < MIN_NAME_LENGTH -> "Ad soyad en az $MIN_NAME_LENGTH karakter olmalı"
+        else -> null
+    }
+
+    private fun shouldShowError(error: String, value: String) =
+        error.isNotEmpty() && value.isNotBlank()
+
+    // ========== AUTH SUCCESS HANDLER ==========
+
+    private fun handleAuthSuccess(result: Resource.Success<User>) {
+        result.token?.let { tokenManager.saveToken(it) }
+        result.data?.let { user ->
+            tokenManager.saveUser(user.id, user.name, user.email)
+        }
+    }
+
+    // ========== FORGOT PASSWORD ==========
+
+    fun updateForgotPasswordEmail(email: String) {
+        forgotPasswordEmail = email
+        forgotPasswordEmailError = ""
+    }
+
+    fun performForgotPassword() {
+        validateEmail(forgotPasswordEmail)?.let { error ->
+            forgotPasswordEmailError = error
+            return
+        }
+
+        viewModelScope.launch {
+            _forgotPasswordState.value = Resource.Loading()
+            _forgotPasswordState.value = repository.forgotPassword(forgotPasswordEmail)
+        }
+    }
+
+    fun resetForgotPasswordState() {
+        _forgotPasswordState.value = null
+        forgotPasswordEmail = ""
+        forgotPasswordEmailError = ""
+    }
+
+    fun forgotPasswordEmailSupportText() =
+        shouldShowError(forgotPasswordEmailError, forgotPasswordEmail)
+
+    // ========== RESET PASSWORD ==========
+
+    fun updateResetPasswordNewPassword(password: String) {
+        resetPasswordNewPassword = password
+        resetPasswordError = ""
+    }
+
+    fun updateResetPasswordConfirmPassword(password: String) {
+        resetPasswordConfirmPassword = password
+        resetPasswordConfirmError = ""
+    }
+
+    fun toggleResetPasswordVisibility() {
+        resetPasswordVisible = !resetPasswordVisible
+    }
+
+    fun toggleResetPasswordConfirmVisibility() {
+        resetPasswordConfirmVisible = !resetPasswordConfirmVisible
+    }
+
+    fun performResetPassword(token: String) {
+        var isValid = true
+
+        validatePassword(resetPasswordNewPassword)?.let { error ->
+            resetPasswordError = error
+            isValid = false
+        }
+
+        if (resetPasswordConfirmPassword.isBlank()) {
+            resetPasswordConfirmError = "Şifre tekrarı boş olamaz"
+            isValid = false
+        } else if (resetPasswordNewPassword != resetPasswordConfirmPassword) {
+            resetPasswordConfirmError = "Şifreler eşleşmiyor"
+            isValid = false
+        }
+
+        if (!isValid) return
+
+        viewModelScope.launch {
+            _resetPasswordState.value = Resource.Loading()
+            _resetPasswordState.value = repository.resetPassword(token, resetPasswordNewPassword)
+        }
+    }
+
+    fun resetResetPasswordState() {
+        _resetPasswordState.value = null
+        resetPasswordNewPassword = ""
+        resetPasswordConfirmPassword = ""
+        resetPasswordVisible = false
+        resetPasswordConfirmVisible = false
+        resetPasswordError = ""
+        resetPasswordConfirmError = ""
+    }
+
+    fun resetPasswordSupportText() =
+        shouldShowError(resetPasswordError, resetPasswordNewPassword)
+
+    fun resetPasswordConfirmSupportText() =
+        shouldShowError(resetPasswordConfirmError, resetPasswordConfirmPassword)
+
+    // ========== SIGN UP ==========
+
     fun updateSignUpName(name: String) {
         signUpName = name
-        if (signUpNameError.isNotEmpty()) {
-            signUpNameError = ""
-        }
+        signUpNameError = ""
     }
 
     fun updateSignUpEmail(email: String) {
         signUpEmail = email
-        if (signUpEmailError.isNotEmpty()) {
-            signUpEmailError = ""
-        }
+        signUpEmailError = ""
     }
 
     fun updateSignUpPassword(password: String) {
         signUpPassword = password
-        if (signUpPasswordError.isNotEmpty()) {
-            signUpPasswordError = ""
-        }
+        signUpPasswordError = ""
     }
 
     fun toggleSignUpPasswordVisibility() {
         signUpPasswordVisible = !signUpPasswordVisible
     }
 
-    private fun validateSignUpInputs(): Boolean {
+    fun performSignUp() {
         var isValid = true
 
-        // Name validation
-        if (signUpName.isBlank()) {
-            signUpNameError = "Ad soyad boş olamaz"
-            isValid = false
-        } else if (signUpName.length < 3) {
-            signUpNameError = "Ad soyad en az 3 karakter olmalı"
+        validateName(signUpName)?.let { error ->
+            signUpNameError = error
             isValid = false
         }
 
-        // Email validation
-        val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$".toRegex()
-        if (signUpEmail.isBlank()) {
-            signUpEmailError = "Email boş olamaz"
-            isValid = false
-        } else if (!signUpEmail.matches(emailRegex)) {
-            signUpEmailError = "Geçersiz email formatı"
+        validateEmail(signUpEmail)?.let { error ->
+            signUpEmailError = error
             isValid = false
         }
 
-        // Password validation
-        if (signUpPassword.isBlank()) {
-            signUpPasswordError = "Şifre boş olamaz"
-            isValid = false
-        } else if (signUpPassword.length < 6) {
-            signUpPasswordError = "Şifre en az 6 karakter olmalı"
+        validatePassword(signUpPassword)?.let { error ->
+            signUpPasswordError = error
             isValid = false
         }
 
-        return isValid
-    }
-
-    fun performSignUp() {
-        if (validateSignUpInputs()) {
+        if (isValid) {
             register(signUpName, signUpEmail, signUpPassword)
         }
     }
 
-    // SignIn Functions
+    fun signUpNameSupportText() = shouldShowError(signUpNameError, signUpName)
+    fun signUpEmailSupportText() = shouldShowError(signUpEmailError, signUpEmail)
+    fun signUpPasswordSupportText() = shouldShowError(signUpPasswordError, signUpPassword)
+
+    // ========== SIGN IN ==========
+
     fun updateSignInEmail(email: String) {
         signInEmail = email
-        if (signInEmailError.isNotEmpty()) {
-            signInEmailError = ""
-        }
+        signInEmailError = ""
     }
 
     fun updateSignInPassword(password: String) {
         signInPassword = password
-        if (signInPasswordError.isNotEmpty()) {
-            signInPasswordError = ""
-        }
+        signInPasswordError = ""
     }
 
     fun toggleSignInPasswordVisibility() {
         signInPasswordVisible = !signInPasswordVisible
     }
 
-    private fun validateSignInInputs(): Boolean {
+    fun performSignIn() {
         var isValid = true
 
-        // Email validation
         if (signInEmail.isBlank()) {
             signInEmailError = "Email boş olamaz"
             isValid = false
         }
 
-        // Password validation
         if (signInPassword.isBlank()) {
             signInPasswordError = "Şifre boş olamaz"
             isValid = false
         }
 
-        return isValid
-    }
-
-    fun performSignIn() {
-        if (validateSignInInputs()) {
+        if (isValid) {
             login(signInEmail, signInPassword)
         }
     }
 
-    // Helper Functions (UI Support)
-    fun signUpEmailSupportText() = signUpEmailError.isNotEmpty() && signUpEmail.isNotBlank()
-    fun signUpPasswordSupportText() = signUpPasswordError.isNotEmpty() && signUpPassword.isNotBlank()
-    fun signUpNameSupportText() = signUpNameError.isNotEmpty() && signUpName.isNotBlank()
+    fun signInEmailSupportText() = shouldShowError(signInEmailError, signInEmail)
+    fun signInPasswordSupportText() = shouldShowError(signInPasswordError, signInPassword)
 
-    fun signInEmailSupportText() = signInEmailError.isNotEmpty() && signInEmail.isNotBlank()
-    fun signInPasswordSupportText() = signInPasswordError.isNotEmpty() && signInPassword.isNotBlank()
+    // ========== CORE AUTH ==========
 
-    // Core Auth Functions
     private fun register(name: String, email: String, password: String) {
         viewModelScope.launch {
             _registerState.value = Resource.Loading()
-
             val result = repository.register(name, email, password)
 
             if (result is Resource.Success) {
-                result.token?.let { tokenManager.saveToken(it) }
-                result.data?.let { user ->
-                    tokenManager.saveUser(user.id, user.name, user.email)
-                }
+                handleAuthSuccess(result)
             }
 
             _registerState.value = result
@@ -199,17 +314,26 @@ class AuthViewModel @Inject constructor(
     private fun login(email: String, password: String) {
         viewModelScope.launch {
             _loginState.value = Resource.Loading()
-
             val result = repository.login(email, password)
 
             if (result is Resource.Success) {
-                result.token?.let { tokenManager.saveToken(it) }
-                result.data?.let { user ->
-                    tokenManager.saveUser(user.id, user.name, user.email)
-                }
+                handleAuthSuccess(result)
             }
 
             _loginState.value = result
+        }
+    }
+
+    fun googleSignIn(idToken: String) {
+        viewModelScope.launch {
+            _googleSignInState.value = Resource.Loading()
+            val result = repository.googleSignIn(idToken)
+
+            if (result is Resource.Success) {
+                handleAuthSuccess(result)
+            }
+
+            _googleSignInState.value = result
         }
     }
 
@@ -218,20 +342,16 @@ class AuthViewModel @Inject constructor(
         clearAllStates()
     }
 
-    fun isLoggedIn(): Boolean {
-        return tokenManager.isLoggedIn()
-    }
+    fun isLoggedIn(): Boolean = tokenManager.isLoggedIn()
 
-    fun resetRegisterState() {
-        _registerState.value = null
-    }
+    // ========== STATE RESET ==========
 
-    fun resetLoginState() {
-        _loginState.value = null
-    }
+    fun resetRegisterState() { _registerState.value = null }
+    fun resetLoginState() { _loginState.value = null }
+    fun resetGoogleSignInState() { _googleSignInState.value = null }
 
     private fun clearAllStates() {
-        // Clear SignUp states
+        // SignUp
         signUpName = ""
         signUpEmail = ""
         signUpPassword = ""
@@ -240,11 +360,23 @@ class AuthViewModel @Inject constructor(
         signUpEmailError = ""
         signUpPasswordError = ""
 
-        // Clear SignIn states
+        // SignIn
         signInEmail = ""
         signInPassword = ""
         signInPasswordVisible = false
         signInEmailError = ""
         signInPasswordError = ""
+
+        // Forgot Password
+        forgotPasswordEmail = ""
+        forgotPasswordEmailError = ""
+
+        // Reset Password
+        resetPasswordNewPassword = ""
+        resetPasswordConfirmPassword = ""
+        resetPasswordVisible = false
+        resetPasswordConfirmVisible = false
+        resetPasswordError = ""
+        resetPasswordConfirmError = ""
     }
 }

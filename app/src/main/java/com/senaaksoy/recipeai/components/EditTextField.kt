@@ -23,7 +23,8 @@ fun EditTextField(
     leadingIcon: @Composable (() -> Unit)? = null,
     shape: RoundedCornerShape = RoundedCornerShape(12.dp),
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
-    supportingText: @Composable (() -> Unit)? = null
+    supportingText: @Composable (() -> Unit)? = null,
+    isError: Boolean = false
 ) {
     OutlinedTextField(
         value = value,
@@ -36,6 +37,7 @@ fun EditTextField(
         leadingIcon = leadingIcon,
         shape = shape,
         colors = colors,
-        supportingText = supportingText
+        supportingText = supportingText,
+        isError = isError
     )
 }

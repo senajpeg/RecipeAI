@@ -4,9 +4,59 @@
     <string name="email">Email</string>
     <string name="sifre">Şifre</string>
     <string name="kaydol">Kayıt Ol</string>
+    <string name="yeni_sifre">Yeni Şifre</string>
+    <string name="lock">🔐</string>
+    <string name="yeni_sifre_tekrar">Yeni Şifre (Tekrar)</string>
     <string name="giris_yap">Giriş Yap</string>
     <string name="google_ile_devam_et">Google ile devam et</string>
     <string name="sifremi_unuttum">Şifremi Unuttum</string>
     <string name="already_have_account">Zaten bir hesabın var mı? Giriş Yap</string>
     <string name="have_an_account_sign_up">Hesabın yok mu? Kaydol</string>
+    <string name="default_web_client_id">889975755959-ig2do44udle07reh9esrm773mot0jhdm.apps.googleusercontent.com</string>
+    <!-- Toast mesajları -->
+    <string name="toast_login_failed">Giriş başarısız</string>
+    <string name="toast_google_success">Google ile giriş başarılı!</string>
+    <string name="toast_google_failed">Google giriş başarısız</string>
+    <string name="toast_google_token_failed">Google token alınamadı</string>
+    <string name="toast_google_signin_failed">Google giriş başarısız: %1$s</string>
+    <string name="toast_register_success">Kayıt başarılı! Email adresinizi kontrol edin.</string>
+    <string name="toast_register_failed">Kayıt başarısız</string>
+    <!-- SignUp / SignIn Validation -->
+    <string name="error_name_empty">Ad soyad boş olamaz</string>
+    <string name="error_name_short">Ad soyad en az 3 karakter olmalı</string>
+    <string name="error_email_empty">Email boş olamaz</string>
+    <string name="error_email_invalid">Geçersiz email formatı</string>
+    <string name="error_password_empty">Şifre boş olamaz</string>
+    <string name="error_password_short">Şifre en az 6 karakter olmalı</string>
+    <string name="error_password_mismatch">Şifreler eşleşmiyor</string>
+    <string name="error_password_confirm_empty">Şifre tekrarı boş olamaz</string>
+
+    <!-- Toast Messages -->
+    <string name="toast_google_login_failed">Google giriş başarısız</string>
+    <string name="toast_google_token_missing">Google token alınamadı</string>
+    <string name="toast_login_success">Giriş başarılı!</string>
+    <string name="toast_google_login_success">Google ile giriş başarılı!</string>
+    <string name="error_email_blank">Email boş olamaz</string>
+    <string name="error_forgot_password_invalid">Geçersiz email formatı</string>
+    <string name="error_reset_password_empty">Şifre boş olamaz</string>
+    <string name="error_reset_password_short">Şifre en az 6 karakter olmalı</string>
+    <string name="error_reset_password_confirm_empty">Şifre tekrarı boş olamaz</string>
+    <string name="error_reset_password_mismatch">Şifreler eşleşmiyor</string>
+    <!-- Reset Password / Forgot Password -->
+    <string name="reset_password_title">Şifre Sıfırlama</string>
+    <string name="reset_password_description">Yeni şifreni belirle</string>
+    <string name="reset_password_button">Şifremi Sıfırla</string>
+    <string name="reset_password_success">Şifre başarıyla güncellendi! Giriş yapabilirsin.</string>
+    <string name="reset_password_error">Şifre sıfırlanamadı</string>
+    <string name="reset_password_new_label">Yeni Şifre</string>
+    <string name="reset_password_confirm_label">Yeni Şifre Tekrar</string>
+
+    <string name="forgot_password_title">Şifremi Unuttum</string>
+    <string name="forgot_password_description">Email adresine şifre sıfırlama linki göndereceğiz</string>
+    <string name="forgot_password_button">Şifre Sıfırlama Linki Gönder</string>
+    <string name="forgot_password_success">Email gönderildi!</string>
+    <string name="forgot_password_error">Email gönderilemedi</string>
+    <string name="email_label">Email</string>
+
+
 </resources>

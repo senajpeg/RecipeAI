@@ -11,11 +11,15 @@ enum class Screen(val route: String) {
     SearchScreen(route = "SearchScreen"),
     ForgotPasswordScreen(route = "ForgotPasswordScreen"),
     ProfileScreen(route = "ProfileScreen"),
-    ResetPasswordScreen(route = "ResetPasswordScreen?oobCode={oobCode}");
+    ResetPasswordScreen(route = "ResetPasswordScreen?oobCode={token}");
 
     companion object {
         fun createRecipeDetailRoute(recipeId: Int): String {
             return "RecipeDetailScreen/$recipeId"
+        }
+        //Reset password route oluşturucu
+        fun createResetPasswordRoute(token: String): String {
+            return "ResetPasswordScreen/$token"
         }
     }
 }

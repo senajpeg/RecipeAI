@@ -44,6 +44,8 @@ android {
 }
 
 dependencies {
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
     // OkHttp Logging
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     //retrofit

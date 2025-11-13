@@ -1,5 +1,10 @@
 package com.senaaksoy.recipeai.presentation.screens.auth
 
+import android.app.Activity
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,33 +23,126 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.components.EditTextField
+import com.senaaksoy.recipeai.navigation.Screen
+import com.senaaksoy.recipeai.utills.Resource
 
 @Composable
-fun SignInScreen(modifier: Modifier = Modifier) {
+fun SignInScreen(
+    navController: NavController,
+    viewModel: AuthViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val loginState by viewModel.loginState.collectAsState()
+    val googleSignInState by viewModel.googleSignInState.collectAsState()
+
+
+    //Google Sign-In Client
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(context.getString(R.string.default_web_client_id))
+        .requestEmail()
+        .build()
+    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+
+    //Google Sign-In Launcher
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                account.idToken?.let { idToken ->
+                    viewModel.googleSignIn(idToken)
+                } ?: run {
+                    Toast.makeText(context, context.getString(R.string.toast_google_token_failed), Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: ApiException) {
+                Toast.makeText(context, context.getString(R.string.toast_google_signin_failed, e.message ?: ""), Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Log.e("GoogleSignIn", "❌ Result code başarısız: ${result.resultCode}")
+        }
+    }
+
+    // Login & Google state observer
+    LaunchedEffect(loginState, googleSignInState) {
+        when (loginState) {
+            is Resource.Success -> {
+                Toast.makeText(context, context.getString(R.string.toast_login_success), Toast.LENGTH_SHORT).show()
+                navController.navigate(Screen.HomeScreen.route) {
+                    popUpTo(Screen.SignInScreen.route) { inclusive = true }
+                }
+                viewModel.resetLoginState()
+            }
+            is Resource.Error -> {
+                Toast.makeText(
+                    context,
+                    (loginState as Resource.Error).message ?: context.getString(R.string.toast_login_failed),
+                    Toast.LENGTH_LONG
+                ).show()
+                viewModel.resetLoginState()
+            }
+            else -> {}
+        }
+
+        // ⭐ Google Sign-In State
+        when (googleSignInState) {
+            is Resource.Success -> {
+                Toast.makeText(context, context.getString(R.string.toast_google_success), Toast.LENGTH_SHORT).show()
+                navController.navigate(Screen.HomeScreen.route) {
+                    popUpTo(Screen.SignInScreen.route) { inclusive = true }
+                }
+                viewModel.resetGoogleSignInState()
+            }
+            is Resource.Error -> {
+                Toast.makeText(
+                    context,
+                    (googleSignInState as Resource.Error).message ?: context.getString(R.string.toast_google_failed),
+                    Toast.LENGTH_LONG
+                ).show()
+                viewModel.resetGoogleSignInState()
+            }
+            else -> {}
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -52,8 +150,8 @@ fun SignInScreen(modifier: Modifier = Modifier) {
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF5D10A2),
-                        Color(0xFF6257E7)
+                        Color(0xFF87CEF3),
+                        Color(0xFF6F7DD7)
                     )
                 )
             )
@@ -75,8 +173,8 @@ fun SignInScreen(modifier: Modifier = Modifier) {
 
             // Email
             EditTextField(
-                value = "",
-                onValueChange = {},
+                value = viewModel.signInEmail,
+                onValueChange = { viewModel.updateSignInEmail(it) },
                 label = R.string.email,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Next,
@@ -89,13 +187,17 @@ fun SignInScreen(modifier: Modifier = Modifier) {
                         tint = Color(0xFFcfccf0)
                     )
                 },
+                isError = viewModel.signInEmailSupportText(),
+                supportingText = if (viewModel.signInEmailSupportText()) {
+                    { Text(viewModel.signInEmailError) }
+                } else null,
                 colors = OutlinedTextFieldDefaults.colors(focusedLabelColor = Color.White)
             )
 
             // Password
             EditTextField(
-                value = "",
-                onValueChange = {},
+                value = viewModel.signInPassword,
+                onValueChange = { viewModel.updateSignInPassword(it) },
                 label = R.string.sifre,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Done,
@@ -109,12 +211,24 @@ fun SignInScreen(modifier: Modifier = Modifier) {
                     )
                 },
                 trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.VisibilityOff,
-                        contentDescription = null
-                    )
+                    IconButton(onClick = { viewModel.toggleSignInPasswordVisibility() }) {
+                        Icon(
+                            imageVector = if (viewModel.signInPasswordVisible)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff,
+                            contentDescription = null
+                        )
+                    }
                 },
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (viewModel.signInPasswordVisible)
+                    VisualTransformation.None
+                else
+                    PasswordVisualTransformation(),
+                isError = viewModel.signInPasswordSupportText(),
+                supportingText = if (viewModel.signInPasswordSupportText()) {
+                    { Text(viewModel.signInPasswordError) }
+                } else null,
                 colors = OutlinedTextFieldDefaults.colors(focusedLabelColor = Color.White)
             )
 
@@ -125,7 +239,9 @@ fun SignInScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .widthIn(max = 280.dp)
                     .fillMaxWidth()
-                    .clickable { },
+                    .clickable {
+                        navController.navigate(Screen.ForgotPasswordScreen.route)
+                    },
                 textAlign = TextAlign.End
             )
 
@@ -133,7 +249,8 @@ fun SignInScreen(modifier: Modifier = Modifier) {
 
             // Login button
             Button(
-                onClick = { },
+                onClick = { viewModel.performSignIn() },
+                enabled = loginState !is Resource.Loading,
                 modifier = Modifier
                     .widthIn(max = 350.dp)
                     .fillMaxWidth(0.6f)
@@ -148,12 +265,28 @@ fun SignInScreen(modifier: Modifier = Modifier) {
                     ),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
-                Text(text = stringResource(R.string.giris_yap))
+                if (loginState is Resource.Loading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.height(24.dp)
+                    )
+                } else {
+                    Text(text = stringResource(R.string.giris_yap))
+                }
             }
 
             // Google button
             Button(
-                onClick = { },
+                onClick = {
+                    Log.d("GoogleSignIn", "🔵 Google butonu tıklandı")
+
+                    // Google Sign-In öncesi logout
+                    googleSignInClient.signOut().addOnCompleteListener {
+                        Log.d("GoogleSignIn", "Çıkış yapıldı, şimdi sign-in intent başlatılıyor")
+                        val signInIntent = googleSignInClient.signInIntent
+                        googleSignInLauncher.launch(signInIntent)
+                    }
+                },
                 modifier = Modifier
                     .widthIn(max = 350.dp)
                     .fillMaxWidth(0.6f)
@@ -175,7 +308,11 @@ fun SignInScreen(modifier: Modifier = Modifier) {
             }
 
             // Sign up link
-            TextButton (onClick = { }) {
+            TextButton(onClick = {
+                navController.navigate(Screen.SignUpScreen.route) {
+                    popUpTo(Screen.SignInScreen.route) { inclusive = true }
+                }
+            }) {
                 Text(
                     text = stringResource(R.string.have_an_account_sign_up),
                     color = Color(0xFFaea0e4)

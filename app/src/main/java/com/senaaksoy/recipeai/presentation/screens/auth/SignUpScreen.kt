@@ -26,6 +26,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -70,17 +71,15 @@ fun SignUpScreen(
             is Resource.Success -> {
                 Toast.makeText(
                     context,
-                    "Kayıt başarılı! Email adresinizi kontrol edin.",
+                    context.getString(R.string.toast_register_success),
                     Toast.LENGTH_LONG
                 ).show()
                 authViewModel.resetRegisterState()
-                // Email doğrulama ekranına yönlendir (opsiyonel)
-                // navController.navigate(Screen.EmailVerificationScreen.route)
             }
             is Resource.Error -> {
                 Toast.makeText(
                     context,
-                    registerState?.message ?: "Kayıt başarısız",
+                    registerState?.message ?: context.getString(R.string.toast_register_failed),
                     Toast.LENGTH_LONG
                 ).show()
                 authViewModel.resetRegisterState()
@@ -131,8 +130,9 @@ fun SignUpScreen(
                         tint = Color(0xFFcfccf0)
                     )
                 },
+                isError = authViewModel.signUpNameSupportText(),
                 colors = OutlinedTextFieldDefaults.colors(focusedLabelColor = Color.White),
-                supportingText = if (authViewModel.signUpNameError.isNotEmpty()) {
+                supportingText = if (authViewModel.signUpNameSupportText()) {
                     { Text(authViewModel.signUpNameError, color = Color.Red) }
                 } else null
             )
@@ -152,8 +152,9 @@ fun SignUpScreen(
                         tint = Color(0xFFcfccf0)
                     )
                 },
+                isError = authViewModel.signUpEmailSupportText(),
                 colors = OutlinedTextFieldDefaults.colors(focusedLabelColor = Color.White),
-                supportingText = if (authViewModel.signUpEmailError.isNotEmpty()) {
+                supportingText = if (authViewModel.signUpEmailSupportText()) {
                     { Text(authViewModel.signUpEmailError, color = Color.Red) }
                 } else null
             )
@@ -174,27 +175,26 @@ fun SignUpScreen(
                     )
                 },
                 trailingIcon = {
-                    Icon(
-                        imageVector = if (authViewModel.signUpPasswordVisible)
-                            Icons.Default.Visibility
-                        else
-                            Icons.Default.VisibilityOff,
-                        contentDescription = if (authViewModel.signUpPasswordVisible)
-                            "Şifreyi gizle"
-                        else
-                            "Şifreyi göster",
-                        modifier = modifier.clickable {
-                            authViewModel.toggleSignUpPasswordVisibility()
-                        }
-                    )
+                    IconButton(onClick = { authViewModel.toggleSignUpPasswordVisibility() }) {
+                        Icon(
+                            imageVector = if (authViewModel.signUpPasswordVisible)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff,
+                            contentDescription = if (authViewModel.signUpPasswordVisible)
+                                "Şifreyi gizle"
+                            else
+                                "Şifreyi göster"
+                        )
+                    }
                 },
                 visualTransformation = if (authViewModel.signUpPasswordVisible)
                     VisualTransformation.None
                 else
                     PasswordVisualTransformation(),
                 colors = OutlinedTextFieldDefaults.colors(focusedLabelColor = Color.White),
-                supportingText = if (authViewModel.signUpPasswordError.isNotEmpty())
-                {
+                isError = authViewModel.signUpPasswordSupportText(),
+                supportingText = if (authViewModel.signUpPasswordSupportText()) {
                     { Text(authViewModel.signUpPasswordError, color = Color.Red) }
                 } else null
             )
