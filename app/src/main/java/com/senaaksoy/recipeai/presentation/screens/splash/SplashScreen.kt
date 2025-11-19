@@ -20,16 +20,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.navigation.Screen
 import com.senaaksoy.recipeai.navigation.navigateSingleTopClear
+import com.senaaksoy.recipeai.presentation.screens.auth.AuthViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
     navController: NavController,
+    authViewModel: AuthViewModel = hiltViewModel(),
     modifier: Modifier=Modifier
 ){
     val context = LocalContext.current
@@ -48,9 +51,16 @@ fun SplashScreen(
         }
     }
 
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(Unit) {
         delay(3000)
-        navController.navigateSingleTopClear(route = Screen.SignUpScreen.route)
+
+        val destination = if (authViewModel.isLoggedIn()) {
+            Screen.HomeScreen.route
+        } else {
+            Screen.SignUpScreen.route
+        }
+
+        navController.navigateSingleTopClear(destination)
     }
 
 

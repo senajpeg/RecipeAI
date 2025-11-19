@@ -11,10 +11,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.senaaksoy.recipeai.components.BottomNavigationBar
+import com.senaaksoy.recipeai.components.RecipeTopAppBar
 import com.senaaksoy.recipeai.presentation.screens.auth.ForgotPasswordScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.ResetPasswordScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignInScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignUpScreen
+import com.senaaksoy.recipeai.presentation.screens.home.HomeScreen
 import com.senaaksoy.recipeai.presentation.screens.splash.SplashScreen
 
 @Composable
@@ -25,8 +28,18 @@ fun RecipeAiNavigation() {
     val currentRoute = currentBackStackEntry?.destination?.route ?: Screen.HomeScreen.route
 
     Scaffold(
-        topBar = {},
-        bottomBar = {}
+        topBar = { RecipeTopAppBar(currentRoute = currentRoute, navController = navController) },
+        bottomBar = {
+            if (currentRoute in listOf(
+                    Screen.HomeScreen.route,
+                    Screen.FavoritesScreen.route,
+                    Screen.SearchScreen.route,
+                    Screen.ProfileScreen.route
+                )
+            ) {
+                BottomNavigationBar(navController = navController, currentRoute = currentRoute)
+            }
+        }
     ) { paddingValues ->
         NavHost(
             modifier = Modifier.padding(paddingValues),
@@ -37,7 +50,7 @@ fun RecipeAiNavigation() {
                 SplashScreen(navController = navController)
             }
             composable(route = Screen.HomeScreen.route) {
-
+                HomeScreen(navController=navController)
             }
             composable(route = Screen.SignInScreen.route) {
                 SignInScreen(navController = navController)

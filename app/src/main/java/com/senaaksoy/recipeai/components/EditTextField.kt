@@ -9,6 +9,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -24,7 +25,8 @@ fun EditTextField(
     shape: RoundedCornerShape = RoundedCornerShape(12.dp),
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
     supportingText: @Composable (() -> Unit)? = null,
-    isError: Boolean = false
+    isError: Boolean = false,
+    modifier: Modifier=Modifier
 ) {
     OutlinedTextField(
         value = value,
@@ -38,6 +40,7 @@ fun EditTextField(
         shape = shape,
         colors = colors,
         supportingText = supportingText,
-        isError = isError
+        isError = isError,
+        modifier = modifier
     )
 }
