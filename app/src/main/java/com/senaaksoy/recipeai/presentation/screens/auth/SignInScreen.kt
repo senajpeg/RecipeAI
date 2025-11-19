@@ -60,13 +60,13 @@ import com.google.android.gms.common.api.ApiException
 import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.components.EditTextField
 import com.senaaksoy.recipeai.navigation.Screen
+import com.senaaksoy.recipeai.presentation.viewmodel.AuthViewModel
 import com.senaaksoy.recipeai.utills.Resource
 
 @Composable
 fun SignInScreen(
     navController: NavController,
-    viewModel: AuthViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val loginState by viewModel.loginState.collectAsState()

@@ -1,4 +1,5 @@
-package com.senaaksoy.recipeai.presentation.screens.auth
+package com.senaaksoy.recipeai.presentation.viewmodel
+
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -344,7 +345,17 @@ class AuthViewModel @Inject constructor(
 
     fun isLoggedIn(): Boolean = tokenManager.isLoggedIn()
 
-    // ========== STATE RESET ==========
+    //Helper
+    fun getUserName(): String {
+        return tokenManager.getUserName() ?: "Kullanıcı"
+    }
+
+    fun getUserEmail(): String {
+        return tokenManager.getUserEmail() ?: "example@email.com"
+    }
+
+
+    // STATE RESET
 
     fun resetRegisterState() { _registerState.value = null }
     fun resetLoginState() { _loginState.value = null }

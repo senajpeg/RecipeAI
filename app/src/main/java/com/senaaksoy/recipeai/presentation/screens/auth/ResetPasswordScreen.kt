@@ -49,14 +49,14 @@ import androidx.navigation.NavController
 import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.components.EditTextField
 import com.senaaksoy.recipeai.navigation.Screen
+import com.senaaksoy.recipeai.presentation.viewmodel.AuthViewModel
 import com.senaaksoy.recipeai.utills.Resource
 
 @Composable
 fun ResetPasswordScreen(
     navController: NavController,
     token: String,
-    viewModel: AuthViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val resetPasswordState by viewModel.resetPasswordState.collectAsState()

@@ -25,7 +25,8 @@ fun RecipeTopAppBar(
     if (currentRoute in hideTopBarRoutes) return
 
     val noBackButtonRoutes = listOf(
-        Screen.HomeScreen.route
+        Screen.HomeScreen.route,
+        Screen.ProfileScreen.route
     )
 
     val navigationIconComposable: (@Composable () -> Unit)? = if (currentRoute !in noBackButtonRoutes) {

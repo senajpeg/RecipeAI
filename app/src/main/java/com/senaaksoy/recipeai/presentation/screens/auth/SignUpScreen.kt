@@ -54,6 +54,7 @@ import androidx.navigation.compose.rememberNavController
 import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.components.EditTextField
 import com.senaaksoy.recipeai.navigation.Screen
+import com.senaaksoy.recipeai.presentation.viewmodel.AuthViewModel
 import com.senaaksoy.recipeai.utills.Resource
 
 @Composable

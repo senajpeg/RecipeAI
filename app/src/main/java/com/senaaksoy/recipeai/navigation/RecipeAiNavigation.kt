@@ -18,6 +18,7 @@ import com.senaaksoy.recipeai.presentation.screens.auth.ResetPasswordScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignInScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignUpScreen
 import com.senaaksoy.recipeai.presentation.screens.home.HomeScreen
+import com.senaaksoy.recipeai.presentation.screens.profile.ProfileScreen
 import com.senaaksoy.recipeai.presentation.screens.splash.SplashScreen
 
 @Composable
@@ -50,7 +51,7 @@ fun RecipeAiNavigation() {
                 SplashScreen(navController = navController)
             }
             composable(route = Screen.HomeScreen.route) {
-                HomeScreen(navController=navController)
+                HomeScreen(navController = navController)
             }
             composable(route = Screen.SignInScreen.route) {
                 SignInScreen(navController = navController)
@@ -71,7 +72,7 @@ fun RecipeAiNavigation() {
 
             }
             composable(route = Screen.ProfileScreen.route) {
-
+                ProfileScreen(navController = navController)
             }
             composable(
                 route = Screen.ResetPasswordScreen.route,

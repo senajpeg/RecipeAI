@@ -1,6 +1,5 @@
 package com.senaaksoy.recipeai.presentation.screens.splash
 
-import android.window.SplashScreen
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,7 +11,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -26,14 +24,15 @@ import androidx.navigation.compose.rememberNavController
 import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.navigation.Screen
 import com.senaaksoy.recipeai.navigation.navigateSingleTopClear
-import com.senaaksoy.recipeai.presentation.screens.auth.AuthViewModel
+import com.senaaksoy.recipeai.presentation.viewmodel.AuthViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
+    modifier: Modifier=Modifier,
     navController: NavController,
-    authViewModel: AuthViewModel = hiltViewModel(),
-    modifier: Modifier=Modifier
+    authViewModel: AuthViewModel = hiltViewModel()
+
 ){
     val context = LocalContext.current
     val view = LocalView.current

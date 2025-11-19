@@ -19,11 +19,11 @@ interface AuthApi {
 
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
-    // ⭐ YENİ: Şifre sıfırlama isteği
+    //  Şifre sıfırlama isteği
     @POST("auth/forgot-password")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<MessageResponse>
 
-    // ⭐ YENİ: Şifre sıfırlama (token ile)
+    //  Şifre sıfırlama (token ile)
     @POST("auth/reset-password/{token}")
     suspend fun resetPassword(
         @Path("token") token: String,

@@ -46,13 +46,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.components.EditTextField
+import com.senaaksoy.recipeai.presentation.viewmodel.AuthViewModel
 import com.senaaksoy.recipeai.utills.Resource
 
 @Composable
 fun ForgotPasswordScreen(
     navController: NavController,
-    viewModel: AuthViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val forgotPasswordState by viewModel.forgotPasswordState.collectAsState()

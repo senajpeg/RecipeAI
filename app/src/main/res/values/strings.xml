@@ -3,6 +3,8 @@
     <string name="ad_soyad">Ad-Soyad</string>
     <string name="email">Email</string>
     <string name="profile">Profil</string>
+    <string name="recipes">Tariflerim</string>
+    <string name="my_favorites">Favorilerim</string>
     <string name="sifre">Şifre</string>
     <string name="kaydol">Kayıt Ol</string>
     <string name="yeni_sifre">Yeni Şifre</string>
@@ -16,6 +18,7 @@
     <string name="search">Arama</string>
     <string name="yeni_sifre_tekrar">Yeni Şifre (Tekrar)</string>
     <string name="giris_yap">Giriş Yap</string>
+    <string name="logout">Çıkış Yap</string>
     <string name="google_ile_devam_et">Google ile devam et</string>
     <string name="sifremi_unuttum">Şifremi Unuttum</string>
     <string name="already_have_account">Zaten bir hesabın var mı? Giriş Yap</string>

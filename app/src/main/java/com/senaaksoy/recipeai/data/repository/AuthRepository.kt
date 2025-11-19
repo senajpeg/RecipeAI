@@ -75,7 +75,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    // ⭐ YENİ: Şifre sıfırlama isteği
+    // Şifre sıfırlama isteği
     suspend fun forgotPassword(email: String): Resource<String> {
         return withContext(Dispatchers.IO) {
             try {
@@ -99,7 +99,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    // ⭐ YENİ: Şifre sıfırlama (token ile)
+    //  Şifre sıfırlama (token ile)
     suspend fun resetPassword(token: String, password: String): Resource<String> {
         return withContext(Dispatchers.IO) {
             try {
@@ -122,7 +122,7 @@ class AuthRepository @Inject constructor(
             }
         }
     }
-    // ⭐ YENİ: Google Sign-In
+    // Google Sign-In
     suspend fun googleSignIn(idToken: String): Resource<User> {
         return withContext(Dispatchers.IO) {
             try {
