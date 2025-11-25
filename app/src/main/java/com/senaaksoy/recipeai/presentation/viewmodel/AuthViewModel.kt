@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.senaaksoy.recipeai.data.remote.dto.MessageResponse
+import com.senaaksoy.recipeai.data.remote.dto.UserProfileResponse
 import com.senaaksoy.recipeai.domain.model.User
 import com.senaaksoy.recipeai.utills.Resource
 import com.senaaksoy.recipeai.utills.TokenManager
@@ -37,6 +39,12 @@ class AuthViewModel @Inject constructor(
 
     private val _resetPasswordState = MutableStateFlow<Resource<String>?>(null)
     val resetPasswordState: StateFlow<Resource<String>?> = _resetPasswordState
+
+    private val _profilePictureState = MutableStateFlow<Resource<MessageResponse>?>(null)
+    val profilePictureState: StateFlow<Resource<MessageResponse>?> = _profilePictureState
+
+    private val _userProfile = MutableStateFlow<UserProfileResponse?>(null)
+    val userProfile: StateFlow<UserProfileResponse?> = _userProfile
 
     // Forgot Password
     var forgotPasswordEmail by mutableStateOf("")
@@ -346,13 +354,42 @@ class AuthViewModel @Inject constructor(
     fun isLoggedIn(): Boolean = tokenManager.isLoggedIn()
 
     //Helper
+
+    fun updateProfilePicture(base64Image: String) {
+        viewModelScope.launch {
+            _profilePictureState.value = Resource.Loading()
+            _profilePictureState.value = repository.updateProfilePicture(base64Image)
+        }
+    }
+
+    fun loadUserProfile() {
+        viewModelScope.launch {
+            when (val result = repository.getUserProfile()) {
+                is Resource.Success -> {
+                    _userProfile.value = result.data
+                }
+                is Resource.Error -> {
+                }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+
+
+
+
     fun getUserName(): String {
-        return tokenManager.getUserName() ?: "Kullanıcı"
+        return _userProfile.value?.name ?: tokenManager.getUserName() ?: "Kullanıcı"
     }
 
     fun getUserEmail(): String {
-        return tokenManager.getUserEmail() ?: "example@email.com"
+        return _userProfile.value?.email ?: tokenManager.getUserEmail() ?: "example@email.com"
     }
+    fun getProfilePicture(): String? {
+        return _userProfile.value?.profile_picture
+    }
+
 
 
     // STATE RESET

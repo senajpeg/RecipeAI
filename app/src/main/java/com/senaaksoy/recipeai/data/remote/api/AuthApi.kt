@@ -7,8 +7,12 @@ import com.senaaksoy.recipeai.data.remote.dto.LoginRequest
 import com.senaaksoy.recipeai.data.remote.dto.MessageResponse
 import com.senaaksoy.recipeai.data.remote.dto.RegisterRequest
 import com.senaaksoy.recipeai.data.remote.dto.ResetPasswordRequest
+import com.senaaksoy.recipeai.data.remote.dto.UpdateProfilePictureRequest
+import com.senaaksoy.recipeai.data.remote.dto.UserProfileResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 
@@ -31,4 +35,14 @@ interface AuthApi {
     ): Response<MessageResponse>
     @POST("auth/google-signin")
     suspend fun googleSignIn(@Body request: GoogleSignInRequest): Response<AuthResponse>
+    @POST("auth/update-profile-picture")
+    suspend fun updateProfilePicture(
+        @Header("Authorization") token: String,
+        @Body request: UpdateProfilePictureRequest
+    ): Response<MessageResponse>
+
+    @GET("auth/profile")
+    suspend fun getUserProfile(
+        @Header("Authorization") token: String
+    ): Response<UserProfileResponse>
 }
