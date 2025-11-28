@@ -6,6 +6,8 @@
     <string name="recipes">Tariflerim</string>
     <string name="my_favorites">Favorilerim</string>
     <string name="sifre">Şifre</string>
+    <string name="tarif_adi">Tarif Adı</string>
+    <string name="yapay_zeka_ile_tarif_olustur">Yapay Zeka İle Tarif Oluştur</string>
     <string name="kaydol">Kayıt Ol</string>
     <string name="yeni_sifre">Yeni Şifre</string>
     <string name="anasayfa">Ana Sayfa</string>

@@ -23,9 +23,9 @@ class RecipeDetailViewModel @Inject constructor(
     val state: StateFlow<RecipeDetailState> = _state.asStateFlow()
 
     init {
-        // Navigation'dan gelen recipeId'yi al
-        savedStateHandle.get<String>("recipeId")?.let { recipeId ->
-            loadRecipe(recipeId.toInt())
+        // recipeId'yi Int olarak al (String değil!)
+        savedStateHandle.get<Int>("recipeId")?.let { recipeId ->
+            loadRecipe(recipeId)
         }
     }
 
@@ -47,9 +47,7 @@ class RecipeDetailViewModel @Inject constructor(
                         error = result.message
                     )
                 }
-                is Resource.Loading -> {
-                    // Loading state zaten set edildi
-                }
+                is Resource.Loading -> { /* already handled */ }
             }
         }
     }

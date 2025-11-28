@@ -3,79 +3,81 @@ package com.senaaksoy.recipeai.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.senaaksoy.recipeai.data.remote.Resource
-import com.senaaksoy.recipeai.domain.repository.RecipeRepository
-import com.senaaksoy.recipeai.presentation.state.RecipeListState
+import com.senaaksoy.recipeai.data.repository.RecipeRepositoryImpl
+import com.senaaksoy.recipeai.domain.model.Recipe
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class RecipeListViewModel @Inject constructor(
-    private val repository: RecipeRepository
+    private val repository: RecipeRepositoryImpl
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(RecipeListState())
-    val state: StateFlow<RecipeListState> = _state.asStateFlow()
+    // Keşfet (Discover) tarifleri
+    private val _discoverRecipes = MutableStateFlow<Resource<List<Recipe>>>(Resource.Loading())
+    val discoverRecipes: StateFlow<Resource<List<Recipe>>> = _discoverRecipes.asStateFlow()
+
+    // Günün Önerisi (Random tarifleri)
+    private val _dailySuggestions = MutableStateFlow<Resource<List<Recipe>>>(Resource.Loading())
+    val dailySuggestions: StateFlow<Resource<List<Recipe>>> = _dailySuggestions.asStateFlow()
+
+    // Arama sonuçları
+    private val _searchResults = MutableStateFlow<Resource<List<Recipe>>?>(null)
+    val searchResults: StateFlow<Resource<List<Recipe>>?> = _searchResults.asStateFlow()
+
+    // Arama query
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     init {
         loadRecipes()
+        loadDailySuggestions()
     }
 
-    // Local'den tarifleri yükle (Flow ile sürekli dinle)
+    // Keşfet tariflerini yükle
     private fun loadRecipes() {
         viewModelScope.launch {
-            repository.getAllRecipesFromLocal()
-                .onStart {
-                    _state.value = _state.value.copy(isLoading = true)
-                }
-                .catch { exception ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = exception.localizedMessage
-                    )
-                }
-                .collect { recipes ->
-                    _state.value = _state.value.copy(
-                        recipes = recipes,
-                        isLoading = false,
-                        error = null
-                    )
-                }
+            _discoverRecipes.value = Resource.Loading()
+            _discoverRecipes.value = repository.syncRecipesFromApi()
         }
     }
 
-    // API'den senkronize et (Pull-to-refresh için)
-    fun refreshRecipes() {
+    // Günün Önerisi yükle (3 random tarif)
+    private fun loadDailySuggestions() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isRefreshing = true)
-
-            when (val result = repository.syncRecipesFromApi()) {
-                is Resource.Success -> {
-                    _state.value = _state.value.copy(
-                        isRefreshing = false,
-                        error = null
-                    )
-                }
-                is Resource.Error -> {
-                    _state.value = _state.value.copy(
-                        isRefreshing = false,
-                        error = result.message
-                    )
-                }
-                is Resource.Loading -> {
-                    // Loading state zaten set edildi
-                }
-            }
+            _dailySuggestions.value = Resource.Loading()
+            _dailySuggestions.value = repository.getRandomRecipes(3)
         }
     }
 
-    // Hata mesajını temizle
-    fun clearError() {
-        _state.value = _state.value.copy(error = null)
+    // Arama yap
+    fun searchRecipes(query: String) {
+        _searchQuery.value = query
+
+        if (query.isBlank()) {
+            _searchResults.value = null
+            return
+        }
+
+        viewModelScope.launch {
+            _searchResults.value = Resource.Loading()
+            _searchResults.value = repository.searchRecipes(query)
+        }
+    }
+
+    // Tarifleri yenile (Pull-to-refresh)
+    fun refreshRecipes() {
+        loadRecipes()
+        loadDailySuggestions()
+    }
+
+    // Arama sonuçlarını temizle
+    fun clearSearch() {
+        _searchQuery.value = ""
+        _searchResults.value = null
     }
 }

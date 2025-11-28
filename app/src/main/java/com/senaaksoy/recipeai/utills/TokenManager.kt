@@ -1,10 +1,14 @@
 package com.senaaksoy.recipeai.utills
 
-
 import android.content.Context
 import android.content.SharedPreferences
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
-class TokenManager(context: Context) {
+class TokenManager @Inject constructor(
+    @ApplicationContext context: Context
+) {
+
     private val prefs: SharedPreferences =
         context.getSharedPreferences("recipeai_prefs", Context.MODE_PRIVATE)
 

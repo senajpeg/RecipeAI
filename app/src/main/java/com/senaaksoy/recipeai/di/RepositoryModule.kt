@@ -1,9 +1,13 @@
 package com.senaaksoy.recipeai.di
 
+import com.google.gson.Gson
 import com.senaaksoy.recipeai.data.local.dao.RecipeDao
+import com.senaaksoy.recipeai.data.remote.api.MealDbApi
 import com.senaaksoy.recipeai.data.remote.api.RecipeApiService
+import com.senaaksoy.recipeai.data.repository.GeminiRepository
 import com.senaaksoy.recipeai.data.repository.RecipeRepositoryImpl
 import com.senaaksoy.recipeai.domain.repository.RecipeRepository
+import com.senaaksoy.recipeai.utills.TranslationManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,8 +23,20 @@ object RepositoryModule {
     @Singleton
     fun provideRecipeRepository(
         api: RecipeApiService,
-        dao: RecipeDao
+        mealDbApi: MealDbApi,
+        dao: RecipeDao,
+        translationManager: TranslationManager
     ): RecipeRepository {
-        return RecipeRepositoryImpl(api, dao)
+        return RecipeRepositoryImpl(api, mealDbApi,dao,translationManager)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideGeminiRepository(
+        api: RecipeApiService,
+        gson: Gson
+    ): GeminiRepository {
+        return GeminiRepository(api, gson)
     }
 }

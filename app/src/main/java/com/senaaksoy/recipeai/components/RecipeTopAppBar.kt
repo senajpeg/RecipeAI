@@ -5,14 +5,16 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
 import com.senaaksoy.recipeai.navigation.Screen
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeTopAppBar(
     currentRoute: String,
     navController: NavController,
-    title: String = ""
+    title: String?
 ) {
     val hideTopBarRoutes = listOf(
         Screen.SplashScreen.route,
@@ -41,7 +43,13 @@ fun RecipeTopAppBar(
 
     if (navigationIconComposable != null) {
         TopAppBar(
-            title = { Text(text = if (title.isNotEmpty()) title else currentRoute) },
+            title = {
+                Text(
+                    text =title ?: "Detay",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
             navigationIcon = navigationIconComposable,
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color(0xFF0D47A1),
@@ -50,5 +58,3 @@ fun RecipeTopAppBar(
         )
     }
 }
-
-

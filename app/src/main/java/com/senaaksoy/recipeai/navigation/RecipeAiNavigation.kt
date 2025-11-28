@@ -3,6 +3,10 @@ package com.senaaksoy.recipeai.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -17,19 +21,30 @@ import com.senaaksoy.recipeai.presentation.screens.auth.ForgotPasswordScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.ResetPasswordScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignInScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignUpScreen
+import com.senaaksoy.recipeai.presentation.screens.detail.RecipeDetailScreen
 import com.senaaksoy.recipeai.presentation.screens.home.HomeScreen
 import com.senaaksoy.recipeai.presentation.screens.profile.ProfileScreen
+import com.senaaksoy.recipeai.presentation.screens.recipe.AddRecipeScreen
 import com.senaaksoy.recipeai.presentation.screens.splash.SplashScreen
 
 @Composable
 fun RecipeAiNavigation() {
 
     val navController = rememberNavController()
-    val currentBackStackEntry = navController.currentBackStackEntryAsState().value
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route ?: Screen.HomeScreen.route
 
+    var topBarTitle by remember { mutableStateOf<String?>(null) }
+
+
     Scaffold(
-        topBar = { RecipeTopAppBar(currentRoute = currentRoute, navController = navController) },
+        topBar = {
+            RecipeTopAppBar(
+                currentRoute = currentRoute,
+                navController = navController,
+                title = topBarTitle
+            )
+        },
         bottomBar = {
             if (currentRoute in listOf(
                     Screen.HomeScreen.route,
@@ -60,10 +75,22 @@ fun RecipeAiNavigation() {
                 SignUpScreen(navController = navController)
             }
             composable(route = Screen.AddRecipeScreen.route) {
-
+                AddRecipeScreen(navController = navController)
             }
-            composable(route = Screen.RecipeDetailScreen.route) {
-
+            composable(
+                route = Screen.RecipeDetailScreen.route,
+                arguments = listOf(
+                    navArgument("recipeId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) {
+                RecipeDetailScreen(
+                    navController = navController,
+                    onRecipeLoaded = { name ->
+                        topBarTitle=name
+                    }
+                )
             }
             composable(route = Screen.FavoritesScreen.route) {
 
@@ -96,11 +123,6 @@ fun RecipeAiNavigation() {
             composable(route = Screen.ForgotPasswordScreen.route) {
                 ForgotPasswordScreen(navController = navController)
             }
-
-
         }
-
     }
-
-
 }

@@ -1,5 +1,7 @@
 package com.senaaksoy.recipeai.data.remote.api
 
+import com.senaaksoy.recipeai.data.remote.dto.AiGeneratedRecipe
+import com.senaaksoy.recipeai.data.remote.dto.GenerateRecipeRequest
 import com.senaaksoy.recipeai.data.remote.dto.RecipeDto
 import retrofit2.Response
 import retrofit2.http.Body
@@ -28,4 +30,9 @@ interface RecipeApiService {
 
     @DELETE("recipes/{id}")
     suspend fun deleteRecipe(@Path("id") id: Int): Response<Unit>
+
+    @POST("gemini/generate")
+    suspend fun generateRecipe(
+        @Body request: GenerateRecipeRequest
+    ): Response<AiGeneratedRecipe>
 }

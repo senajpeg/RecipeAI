@@ -8,5 +8,6 @@ data class Recipe(
     val cookingTime: Int?,
     val difficulty: String?,
     val imageUrl: String?,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val ingredients: List<String> = emptyList()
 )
