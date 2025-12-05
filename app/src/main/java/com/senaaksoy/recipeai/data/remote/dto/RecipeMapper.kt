@@ -13,7 +13,8 @@ fun RecipeDto.toRecipe(): Recipe {
         cookingTime = cookingTime,
         difficulty = difficulty,
         imageUrl = imageUrl,
-        createdAt = System.currentTimeMillis()
+        createdAt = System.currentTimeMillis(),
+        ingredients = emptyList()
     )
 }
 

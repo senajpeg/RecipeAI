@@ -45,7 +45,7 @@ fun RecipeTopAppBar(
         TopAppBar(
             title = {
                 Text(
-                    text =title ?: "Detay",
+                    text =title ?: "",
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

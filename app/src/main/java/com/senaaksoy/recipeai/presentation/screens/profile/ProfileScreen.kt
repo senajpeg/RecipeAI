@@ -40,6 +40,7 @@ import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.navigation.Screen
 import com.senaaksoy.recipeai.navigation.navigateSingleTopClear
 import com.senaaksoy.recipeai.presentation.viewmodel.AuthViewModel
+import com.senaaksoy.recipeai.presentation.viewmodel.FavoriteViewModel
 import com.senaaksoy.recipeai.utills.ImageUtils
 import com.senaaksoy.recipeai.utills.Resource
 import kotlinx.coroutines.delay
@@ -48,7 +49,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    favoriteViewModel: FavoriteViewModel = hiltViewModel() // ✅ EKLENDI
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -56,6 +58,7 @@ fun ProfileScreen(
     // State'ler
     val userProfile by authViewModel.userProfile.collectAsState()
     val profilePictureState by authViewModel.profilePictureState.collectAsState()
+    val favoriteCount by favoriteViewModel.favoriteCount.collectAsState() // ✅ EKLENDI
 
     var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var showToast by remember { mutableStateOf<String?>(null) }
@@ -65,6 +68,7 @@ fun ProfileScreen(
     LaunchedEffect(Unit) {
         Log.d("ProfileScreen", "Loading user profile")
         authViewModel.loadUserProfile()
+        favoriteViewModel.loadFavorites() // ✅ EKLENDI
     }
 
     // Profil fotoğrafını yükle ve göster
@@ -250,7 +254,7 @@ fun ProfileScreen(
 
             ProfileInfoCard(
                 title = stringResource(R.string.my_favorites),
-                count = 25,
+                count = favoriteCount, // ✅ DEĞİŞTİ: 25 yerine favoriteCount
                 icon = Icons.Default.Favorite,
                 modifier = Modifier.fillMaxWidth(0.85f)
             )
@@ -331,6 +335,13 @@ fun ProfileInfoCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     modifier: Modifier = Modifier
 ) {
+    // ✅ BONUS: Animasyonlu sayı güncellemesi
+    val animatedCount by animateIntAsState(
+        targetValue = count,
+        animationSpec = tween(durationMillis = 300),
+        label = "countAnimation"
+    )
+
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
@@ -351,7 +362,7 @@ fun ProfileInfoCard(
         Text(text = title, color = Color.White, fontSize = 17.sp)
 
         Text(
-            text = count.toString(),
+            text = animatedCount.toString(), // ✅ DEĞİŞTİ: Animasyonlu sayı
             color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold

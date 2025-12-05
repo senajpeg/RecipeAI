@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.senaaksoy.recipeai.data.remote.Resource
-import com.senaaksoy.recipeai.domain.repository.RecipeRepository
+import com.senaaksoy.recipeai.data.repository.RecipeRepository
 import com.senaaksoy.recipeai.presentation.state.RecipeDetailState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

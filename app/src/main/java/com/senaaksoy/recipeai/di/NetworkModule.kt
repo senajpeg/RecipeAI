@@ -3,12 +3,15 @@ package com.senaaksoy.recipeai.di
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.senaaksoy.recipeai.data.remote.api.AuthApi
+import com.senaaksoy.recipeai.data.remote.api.FavoriteApi
 import com.senaaksoy.recipeai.data.remote.api.MealDbApi
 import com.senaaksoy.recipeai.data.remote.api.RecipeApiService
+import com.senaaksoy.recipeai.utills.TokenManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -39,13 +42,33 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideAuthInterceptor(tokenManager: TokenManager): Interceptor {
+        return Interceptor { chain ->
+            val originalRequest = chain.request()
+            val token = tokenManager.getToken()
+
+            val newRequest = if (token != null) {
+                originalRequest.newBuilder()
+                    .header("Authorization", "Bearer $token")
+                    .build()
+            } else {
+                originalRequest
+            }
+
+            chain.proceed(newRequest)
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(authInterceptor: Interceptor): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
 
         return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
+            .addInterceptor(authInterceptor)     // ✅ ÖNCE TOKEN EKLENİR
+            .addInterceptor(loggingInterceptor)  // ✅ SONRA LOG YAZDIRILIR
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
@@ -79,6 +102,7 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
+
     @Provides
     @Singleton
     fun provideAuthApi(
@@ -101,5 +125,13 @@ object NetworkModule {
         @MealDbRetrofit retrofit: Retrofit
     ): MealDbApi {
         return retrofit.create(MealDbApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFavoriteApi(
+        @RecipeApiRetrofit retrofit: Retrofit
+    ): FavoriteApi {
+        return retrofit.create(FavoriteApi::class.java)
     }
 }

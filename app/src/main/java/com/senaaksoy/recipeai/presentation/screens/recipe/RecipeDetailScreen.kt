@@ -3,11 +3,13 @@ package com.senaaksoy.recipeai.presentation.screens.detail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,17 +27,24 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.senaaksoy.recipeai.presentation.viewmodel.FavoriteViewModel
 import com.senaaksoy.recipeai.presentation.viewmodel.RecipeDetailViewModel
 
 @Composable
 fun RecipeDetailScreen(
     navController: NavController,
     onRecipeLoaded: (String) -> Unit,
-    viewModel: RecipeDetailViewModel = hiltViewModel()
+    viewModel: RecipeDetailViewModel = hiltViewModel(),
+    favoriteViewModel: FavoriteViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val favoriteStates by favoriteViewModel.favoriteStates.collectAsState()
+
     LaunchedEffect(state.recipe) {
-        state.recipe?.name?.let { onRecipeLoaded(it) }
+        state.recipe?.let { recipe ->
+            onRecipeLoaded(recipe.name)
+            favoriteViewModel.checkFavorite(recipe.id)
+        }
     }
 
     Box(
@@ -85,6 +94,7 @@ fun RecipeDetailScreen(
             }
             state.recipe != null -> {
                 val recipe = state.recipe!!
+                val isFavorite = favoriteStates[recipe.id] ?: false
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -116,6 +126,22 @@ fun RecipeDetailScreen(
                                     )
                                 )
                         )
+
+                        IconButton(
+                            onClick = { favoriteViewModel.toggleFavorite(recipe) },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(16.dp)
+                                .size(48.dp)
+                                .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                                contentDescription = "Favori",
+                                tint = if (isFavorite) Color(0xFFFFD700) else Color.Gray,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
 
                         // Tarif Adı (Resmin üstünde)
                         Text(

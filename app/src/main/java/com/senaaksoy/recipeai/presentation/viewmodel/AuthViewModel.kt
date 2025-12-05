@@ -1,6 +1,7 @@
 package com.senaaksoy.recipeai.presentation.viewmodel
 
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -126,11 +127,23 @@ class AuthViewModel @Inject constructor(
     // ========== AUTH SUCCESS HANDLER ==========
 
     private fun handleAuthSuccess(result: Resource.Success<User>) {
-        result.token?.let { tokenManager.saveToken(it) }
+
+        val token = result.token   // ✅ DOĞRU YER BURASI
+
+        Log.d("TOKEN_DEBUG", "GELEN TOKEN: $token")
+
+        token?.let {
+            tokenManager.saveToken(it)
+            Log.d("TOKEN_KAYDEDILDI", it)
+            Log.d("TOKEN_OKUNAN", tokenManager.getToken().toString())
+        }
+
         result.data?.let { user ->
             tokenManager.saveUser(user.id, user.name, user.email)
         }
     }
+
+
 
     // ========== FORGOT PASSWORD ==========
 

@@ -22,6 +22,7 @@ import com.senaaksoy.recipeai.presentation.screens.auth.ResetPasswordScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignInScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignUpScreen
 import com.senaaksoy.recipeai.presentation.screens.detail.RecipeDetailScreen
+import com.senaaksoy.recipeai.presentation.screens.favorite.FavoritesScreen
 import com.senaaksoy.recipeai.presentation.screens.home.HomeScreen
 import com.senaaksoy.recipeai.presentation.screens.profile.ProfileScreen
 import com.senaaksoy.recipeai.presentation.screens.recipe.AddRecipeScreen
@@ -93,7 +94,7 @@ fun RecipeAiNavigation() {
                 )
             }
             composable(route = Screen.FavoritesScreen.route) {
-
+                FavoritesScreen(navController = navController)
             }
             composable(route = Screen.SearchScreen.route) {
 

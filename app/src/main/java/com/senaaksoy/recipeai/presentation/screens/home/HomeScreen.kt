@@ -56,6 +56,7 @@ fun HomeScreen(
     val dailySuggestions by viewModel.dailySuggestions.collectAsState()
     val discoverRecipes by viewModel.discoverRecipes.collectAsState()
 
+
     Box(
         modifier = Modifier
             .fillMaxSize()

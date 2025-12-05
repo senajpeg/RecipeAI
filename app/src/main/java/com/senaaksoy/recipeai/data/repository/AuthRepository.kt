@@ -42,20 +42,32 @@ class AuthRepository @Inject constructor(
         }
 
     suspend fun login(email: String, password: String): Resource<User> =
-        safeApiCall {
-            val response = authApi.login(LoginRequest(email, password))
-            if (response.isSuccessful) {
-                val body = response.body() ?: throw Exception("Yanıt boş")
-                User(
-                    id = body.user.id,
-                    name = body.user.name,
-                    email = body.user.email,
-                    createdAt = body.user.createdAt
-                )
-            } else {
-                throw Exception(response.errorBody()?.string() ?: "Bilinmeyen hata")
+        withContext(Dispatchers.IO) {
+            try {
+                val response = authApi.login(LoginRequest(email, password))
+
+                if (response.isSuccessful) {
+                    val body = response.body() ?: throw Exception("Yanıt boş")
+
+                    val user = User(
+                        id = body.user.id,
+                        name = body.user.name,
+                        email = body.user.email,
+                        createdAt = body.user.createdAt
+                    )
+
+                    // ✅ TOKEN ARTIK RESOURCE İÇİNDE
+                    Resource.Success(user, body.token)
+
+                } else {
+                    Resource.Error(response.errorBody()?.string() ?: "Bilinmeyen hata")
+                }
+
+            } catch (e: Exception) {
+                Resource.Error(e.localizedMessage ?: "Bağlantı hatası")
             }
         }
+
 
     suspend fun forgotPassword(email: String): Resource<String> =
         safeApiCall {
@@ -78,20 +90,32 @@ class AuthRepository @Inject constructor(
         }
 
     suspend fun googleSignIn(idToken: String): Resource<User> =
-        safeApiCall {
-            val response = authApi.googleSignIn(GoogleSignInRequest(idToken))
-            if (response.isSuccessful) {
-                val body = response.body() ?: throw Exception("Yanıt boş")
-                User(
-                    id = body.user.id,
-                    name = body.user.name,
-                    email = body.user.email,
-                    createdAt = body.user.createdAt
-                )
-            } else {
-                throw Exception(response.errorBody()?.string() ?: "Google ile giriş başarısız")
+        withContext(Dispatchers.IO) {
+            try {
+                val response = authApi.googleSignIn(GoogleSignInRequest(idToken))
+
+                if (response.isSuccessful) {
+                    val body = response.body() ?: throw Exception("Yanıt boş")
+
+                    val user = User(
+                        id = body.user.id,
+                        name = body.user.name,
+                        email = body.user.email,
+                        createdAt = body.user.createdAt
+                    )
+
+                    // ✅ TOKEN ARTIK RESOURCE İÇİNDE
+                    Resource.Success(user, body.token)
+
+                } else {
+                    Resource.Error(response.errorBody()?.string() ?: "Google giriş başarısız")
+                }
+
+            } catch (e: Exception) {
+                Resource.Error(e.localizedMessage ?: "Bağlantı hatası")
             }
         }
+
 
     suspend fun updateProfilePicture(base64Image: String): Resource<MessageResponse> =
         safeApiCall {

@@ -33,6 +33,6 @@ interface RecipeApiService {
 
     @POST("gemini/generate")
     suspend fun generateRecipe(
-        @Body request: GenerateRecipeRequest
+        @Body request: GenerateRecipeRequest  // ✅ Map yerine data class
     ): Response<AiGeneratedRecipe>
 }

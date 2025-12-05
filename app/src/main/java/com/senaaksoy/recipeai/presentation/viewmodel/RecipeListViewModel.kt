@@ -1,5 +1,6 @@
 package com.senaaksoy.recipeai.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.senaaksoy.recipeai.data.remote.Resource
@@ -11,50 +12,73 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 @HiltViewModel
 class RecipeListViewModel @Inject constructor(
     private val repository: RecipeRepositoryImpl
 ) : ViewModel() {
 
-    // Keşfet (Discover) tarifleri
     private val _discoverRecipes = MutableStateFlow<Resource<List<Recipe>>>(Resource.Loading())
     val discoverRecipes: StateFlow<Resource<List<Recipe>>> = _discoverRecipes.asStateFlow()
 
-    // Günün Önerisi (Random tarifleri)
     private val _dailySuggestions = MutableStateFlow<Resource<List<Recipe>>>(Resource.Loading())
     val dailySuggestions: StateFlow<Resource<List<Recipe>>> = _dailySuggestions.asStateFlow()
 
-    // Arama sonuçları
     private val _searchResults = MutableStateFlow<Resource<List<Recipe>>?>(null)
     val searchResults: StateFlow<Resource<List<Recipe>>?> = _searchResults.asStateFlow()
 
-    // Arama query
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     init {
+        Log.d("RecipeListViewModel", "=================================")
+        Log.d("RecipeListViewModel", "🏠 ViewModel oluşturuldu")
+        Log.d("RecipeListViewModel", "=================================")
         loadRecipes()
         loadDailySuggestions()
     }
 
-    // Keşfet tariflerini yükle
     private fun loadRecipes() {
         viewModelScope.launch {
+            Log.d("RecipeListViewModel", "🔵 Keşfet tarifleri yükleniyor...")
             _discoverRecipes.value = Resource.Loading()
-            _discoverRecipes.value = repository.syncRecipesFromApi()
+
+            val result = repository.syncRecipesFromApi()
+
+            when (result) {
+                is Resource.Success -> {
+                    Log.d("RecipeListViewModel", "✅ Keşfet: ${result.data?.size} tarif yüklendi")
+                }
+                is Resource.Error -> {
+                    Log.e("RecipeListViewModel", "❌ Keşfet hatası: ${result.message}")
+                }
+                is Resource.Loading -> {}
+            }
+
+            _discoverRecipes.value = result
         }
     }
 
-    // Günün Önerisi yükle (3 random tarif)
     private fun loadDailySuggestions() {
         viewModelScope.launch {
+            Log.d("RecipeListViewModel", "🔵 Günün önerisi yükleniyor...")
             _dailySuggestions.value = Resource.Loading()
-            _dailySuggestions.value = repository.getRandomRecipes(3)
+
+            val result = repository.getRandomRecipes(3)
+
+            when (result) {
+                is Resource.Success -> {
+                    Log.d("RecipeListViewModel", "✅ Günün önerisi: ${result.data?.size} tarif yüklendi")
+                }
+                is Resource.Error -> {
+                    Log.e("RecipeListViewModel", "❌ Günün önerisi hatası: ${result.message}")
+                }
+                is Resource.Loading -> {}
+            }
+
+            _dailySuggestions.value = result
         }
     }
 
-    // Arama yap
     fun searchRecipes(query: String) {
         _searchQuery.value = query
 
@@ -64,18 +88,18 @@ class RecipeListViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            Log.d("RecipeListViewModel", "🔍 Arama yapılıyor: $query")
             _searchResults.value = Resource.Loading()
             _searchResults.value = repository.searchRecipes(query)
         }
     }
 
-    // Tarifleri yenile (Pull-to-refresh)
     fun refreshRecipes() {
+        Log.d("RecipeListViewModel", "🔄 Tarifler yenileniyor...")
         loadRecipes()
         loadDailySuggestions()
     }
 
-    // Arama sonuçlarını temizle
     fun clearSearch() {
         _searchQuery.value = ""
         _searchResults.value = null

@@ -1,4 +1,4 @@
-package com.senaaksoy.recipeai.domain.repository
+package com.senaaksoy.recipeai.data.repository
 
 import com.senaaksoy.recipeai.data.remote.Resource
 import com.senaaksoy.recipeai.domain.model.Recipe

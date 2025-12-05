@@ -15,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +29,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.senaaksoy.recipeai.data.remote.dto.AiGeneratedRecipe
+import com.senaaksoy.recipeai.domain.model.Recipe
 import com.senaaksoy.recipeai.presentation.viewmodel.AddRecipeViewModel
+import com.senaaksoy.recipeai.presentation.viewmodel.FavoriteViewModel
 
 @Composable
 fun AddRecipeScreen(
@@ -284,7 +289,29 @@ fun IngredientChip(text: String, onDelete: () -> Unit) {
 }
 
 @Composable
-fun GeneratedRecipeCard(recipe: com.senaaksoy.recipeai.data.remote.dto.AiGeneratedRecipe) {
+fun GeneratedRecipeCard(
+    recipe: com.senaaksoy.recipeai.data.remote.dto.AiGeneratedRecipe,
+    favoriteViewModel: FavoriteViewModel = hiltViewModel()
+) {
+    val favoriteStates by favoriteViewModel.favoriteStates.collectAsState()
+
+    val recipeModel = Recipe(
+        id = recipe.name.hashCode(),
+        name = recipe.name,
+        description = recipe.description,
+        instructions = recipe.instructions,
+        cookingTime = recipe.cookingTime,
+        difficulty = recipe.difficulty,
+        imageUrl = null,
+        ingredients = recipe.ingredients
+    )
+
+    val isFavorite = favoriteStates[recipeModel.id] ?: false
+
+    LaunchedEffect(recipeModel.id) {
+        favoriteViewModel.checkFavorite(recipeModel.id)
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -302,7 +329,6 @@ fun GeneratedRecipeCard(recipe: com.senaaksoy.recipeai.data.remote.dto.AiGenerat
                 )
                 .padding(24.dp)
         ) {
-            // Header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -320,7 +346,7 @@ fun GeneratedRecipeCard(recipe: com.senaaksoy.recipeai.data.remote.dto.AiGenerat
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = recipe.name,
                         style = MaterialTheme.typography.headlineSmall,
@@ -333,11 +359,23 @@ fun GeneratedRecipeCard(recipe: com.senaaksoy.recipeai.data.remote.dto.AiGenerat
                         color = Color.Gray
                     )
                 }
+
+                // FAVORİ YILDIZ
+                IconButton(
+                    onClick = { favoriteViewModel.toggleFavorite(recipeModel) },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                        contentDescription = "Favori",
+                        tint = if (isFavorite) Color(0xFFFFD700) else Color.Gray,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
-            // Bilgiler
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -349,7 +387,6 @@ fun GeneratedRecipeCard(recipe: com.senaaksoy.recipeai.data.remote.dto.AiGenerat
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Malzemeler
             Text(
                 text = "📝 Malzemeler",
                 style = MaterialTheme.typography.titleLarge,
@@ -358,9 +395,7 @@ fun GeneratedRecipeCard(recipe: com.senaaksoy.recipeai.data.remote.dto.AiGenerat
             )
             Spacer(modifier = Modifier.height(12.dp))
             recipe.ingredients.forEach { ingredient ->
-                Row(
-                    modifier = Modifier.padding(vertical = 4.dp)
-                ) {
+                Row(modifier = Modifier.padding(vertical = 4.dp)) {
                     Text("•", color = Color(0xFF667EEA), fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -373,7 +408,6 @@ fun GeneratedRecipeCard(recipe: com.senaaksoy.recipeai.data.remote.dto.AiGenerat
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Yapılışı
             Text(
                 text = "👨‍🍳 Yapılışı",
                 style = MaterialTheme.typography.titleLarge,
@@ -388,7 +422,6 @@ fun GeneratedRecipeCard(recipe: com.senaaksoy.recipeai.data.remote.dto.AiGenerat
                 lineHeight = MaterialTheme.typography.bodyLarge.lineHeight.times(1.5f)
             )
 
-            // Öneriler (eğer varsa)
             if (recipe.suggestions.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(20.dp))
                 Card(
@@ -398,9 +431,7 @@ fun GeneratedRecipeCard(recipe: com.senaaksoy.recipeai.data.remote.dto.AiGenerat
                         containerColor = Color(0xFFFFF3E0)
                     )
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "💡 Tavsiyeler",
                             style = MaterialTheme.typography.titleMedium,

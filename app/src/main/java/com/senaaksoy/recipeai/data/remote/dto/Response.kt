@@ -2,10 +2,15 @@ package com.senaaksoy.recipeai.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
-data class UpdateProfilePictureRequest(
-    val profilePicture: String // Base64 string
+data class AuthResponse(
+    val message: String,
+    val user: UserDto,
+    val token: String
 )
 
+data class MessageResponse(
+    val message: String
+)
 data class UserProfileResponse(
     val id: Int,
     val name: String,

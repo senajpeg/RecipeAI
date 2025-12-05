@@ -7,7 +7,6 @@ import com.senaaksoy.recipeai.data.remote.api.MealDbApi
 import com.senaaksoy.recipeai.data.remote.api.RecipeApiService
 import com.senaaksoy.recipeai.data.remote.dto.toRecipe
 import com.senaaksoy.recipeai.domain.model.Recipe
-import com.senaaksoy.recipeai.domain.repository.RecipeRepository
 import com.senaaksoy.recipeai.utills.TranslationManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -30,46 +29,58 @@ class RecipeRepositoryImpl @Inject constructor(
     // MealDB'den tarifleri çek ve çevir
     override suspend fun syncRecipesFromApi(): Resource<List<Recipe>> {
         return try {
-            Log.d("RecipeRepository", "Fetching recipes from MealDB...")
+            Log.d("RecipeRepository", "🔵 MealDB'den tarifler çekiliyor...")
 
             val categories = listOf("Chicken", "Beef", "Pasta", "Seafood", "Dessert")
             val allRecipes = mutableListOf<Recipe>()
 
             categories.forEach { category ->
                 try {
+                    Log.d("RecipeRepository", "📋 Kategori: $category")
                     val response = mealDbApi.getMealsByCategory(category)
+
                     if (response.isSuccessful && response.body()?.meals != null) {
                         val recipes = response.body()!!.meals
                             ?.take(3)
                             ?.mapNotNull { mealDto ->
                                 try {
                                     val recipe = mealDto.toRecipe()
-                                    // Tarif adını Türkçe'ye çevir
-                                    val translatedName = translationManager.translate(recipe.name)
+
+                                    // ⚠️ Çeviri hatasını yakala
+                                    val translatedName = try {
+                                        translationManager.translate(recipe.name)
+                                    } catch (e: Exception) {
+                                        Log.e("RecipeRepository", "⚠️ Çeviri hatası: ${e.message}")
+                                        recipe.name // Çevrilemezse orijinal ismi kullan
+                                    }
+
                                     recipe.copy(name = translatedName)
                                 } catch (e: Exception) {
-                                    Log.e("RecipeRepository", "Error converting meal: ${e.message}")
+                                    Log.e("RecipeRepository", "❌ Tarif dönüştürme hatası: ${e.message}")
                                     null
                                 }
                             } ?: emptyList()
 
                         allRecipes.addAll(recipes)
-                        Log.d("RecipeRepository", "Added ${recipes.size} recipes from $category")
+                        Log.d("RecipeRepository", "✅ $category: ${recipes.size} tarif eklendi")
+                    } else {
+                        Log.e("RecipeRepository", "❌ $category: Response başarısız")
                     }
                 } catch (e: Exception) {
-                    Log.e("RecipeRepository", "Error fetching $category: ${e.message}")
+                    Log.e("RecipeRepository", "❌ $category hatası: ${e.message}")
                 }
             }
 
             if (allRecipes.isNotEmpty()) {
-                Log.d("RecipeRepository", "Total recipes fetched: ${allRecipes.size}")
+                Log.d("RecipeRepository", "✅ Toplam ${allRecipes.size} tarif yüklendi")
                 Resource.Success(allRecipes)
             } else {
+                Log.e("RecipeRepository", "❌ Hiç tarif yüklenemedi!")
                 Resource.Error("Tarifler yüklenemedi")
             }
 
         } catch (e: Exception) {
-            Log.e("RecipeRepository", "Error in syncRecipesFromApi", e)
+            Log.e("RecipeRepository", "❌ FATAL: ${e.message}", e)
             Resource.Error(e.localizedMessage ?: "Bağlantı hatası")
         }
     }
@@ -137,32 +148,51 @@ class RecipeRepositoryImpl @Inject constructor(
         }
     }
 
-    // Random tarifleri getir ve çevir
+
     suspend fun getRandomRecipes(count: Int = 3): Resource<List<Recipe>> {
         return try {
+            Log.d("RecipeRepository", "🎲 $count adet random tarif çekiliyor...")
             val recipes = mutableListOf<Recipe>()
 
-            repeat(count) {
-                val response = mealDbApi.getRandomMeal()
-                if (response.isSuccessful && response.body()?.meals != null) {
-                    response.body()!!.meals?.firstOrNull()?.let { mealDto ->
-                        try {
-                            val recipe = mealDto.toRecipe()
-                            val translatedName = translationManager.translate(recipe.name)
-                            recipes.add(recipe.copy(name = translatedName))
-                        } catch (e: Exception) {
-                            Log.e("RecipeRepository", "Error converting random meal", e)
+            repeat(count) { index ->
+                try {
+                    val response = mealDbApi.getRandomMeal()
+                    if (response.isSuccessful && response.body()?.meals != null) {
+                        response.body()!!.meals?.firstOrNull()?.let { mealDto ->
+                            try {
+                                val recipe = mealDto.toRecipe()
+
+                                // ⚠️ Çeviri hatasını yakala
+                                val translatedName = try {
+                                    translationManager.translate(recipe.name)
+                                } catch (e: Exception) {
+                                    Log.e("RecipeRepository", "⚠️ Çeviri hatası: ${e.message}")
+                                    recipe.name
+                                }
+
+                                recipes.add(recipe.copy(name = translatedName))
+                                Log.d("RecipeRepository", "✅ Random tarif ${index + 1}: ${recipe.name}")
+                            } catch (e: Exception) {
+                                Log.e("RecipeRepository", "❌ Random tarif dönüştürme hatası", e)
+                            }
                         }
+                    } else {
+                        Log.e("RecipeRepository", "❌ Random tarif ${index + 1}: Response başarısız")
                     }
+                } catch (e: Exception) {
+                    Log.e("RecipeRepository", "❌ Random tarif ${index + 1} hatası: ${e.message}")
                 }
             }
 
             if (recipes.isNotEmpty()) {
+                Log.d("RecipeRepository", "✅ ${recipes.size} random tarif yüklendi")
                 Resource.Success(recipes)
             } else {
+                Log.e("RecipeRepository", "❌ Hiç random tarif yüklenemedi!")
                 Resource.Error("Random tarifler yüklenemedi")
             }
         } catch (e: Exception) {
+            Log.e("RecipeRepository", "❌ Random tarifler FATAL: ${e.message}", e)
             Resource.Error(e.localizedMessage ?: "Hata oluştu")
         }
     }

@@ -2,11 +2,14 @@ package com.senaaksoy.recipeai.di
 
 import com.google.gson.Gson
 import com.senaaksoy.recipeai.data.local.dao.RecipeDao
+import com.senaaksoy.recipeai.data.remote.api.FavoriteApi
 import com.senaaksoy.recipeai.data.remote.api.MealDbApi
 import com.senaaksoy.recipeai.data.remote.api.RecipeApiService
+import com.senaaksoy.recipeai.data.repository.FavoriteRepository
 import com.senaaksoy.recipeai.data.repository.GeminiRepository
+import com.senaaksoy.recipeai.data.repository.RecipeRepository
 import com.senaaksoy.recipeai.data.repository.RecipeRepositoryImpl
-import com.senaaksoy.recipeai.domain.repository.RecipeRepository
+import com.senaaksoy.recipeai.utills.TokenManager
 import com.senaaksoy.recipeai.utills.TranslationManager
 import dagger.Module
 import dagger.Provides
@@ -38,5 +41,14 @@ object RepositoryModule {
         gson: Gson
     ): GeminiRepository {
         return GeminiRepository(api, gson)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFavoriteRepository(
+        api: FavoriteApi,
+        tokenManager: TokenManager
+    ): FavoriteRepository {
+        return FavoriteRepository(api, tokenManager )
     }
 }

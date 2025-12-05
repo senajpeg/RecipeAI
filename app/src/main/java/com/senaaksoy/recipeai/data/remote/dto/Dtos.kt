@@ -3,6 +3,56 @@ package com.senaaksoy.recipeai.data.remote.dto
 import com.google.gson.annotations.SerializedName
 import com.senaaksoy.recipeai.domain.model.Recipe
 
+data class UserDto(
+    val id: Int,
+    val name: String,
+    val email: String,
+    val createdAt: String
+)
+
+data class Content(
+    @SerializedName("parts")
+    val parts: List<Part>
+)
+
+data class Part(
+    @SerializedName("text")
+    val text: String
+)
+
+data class GeminiResponse(
+    @SerializedName("candidates")
+    val candidates: List<Candidate>?
+)
+
+data class Candidate(
+    @SerializedName("content")
+    val content: ResponseContent?
+)
+
+data class ResponseContent(
+    @SerializedName("parts")
+    val parts: List<ResponsePart>?
+)
+
+data class ResponsePart(
+    @SerializedName("text")
+    val text: String?
+)
+
+// AI'dan gelen tarifte parse edilmiş model
+data class AiGeneratedRecipe(
+    val name: String,
+    val description: String,
+    val ingredients: List<String>,
+    val instructions: String,
+    val cookingTime: Int,
+    val difficulty: String,
+    val suggestions: List<String> = emptyList(),
+    val canBeMade: Boolean = true
+)
+
+
 // Ana Response
 data class MealDbResponse(
     @SerializedName("meals")
@@ -149,3 +199,29 @@ fun MealDto.toRecipe(): Recipe {
         ingredients = ingredients  // Ölçülü malzeme listesi
     )
 }
+data class RecipeDto(
+    @SerializedName("id")
+    val id: Int,
+
+    @SerializedName("name")
+    val name: String,
+
+    @SerializedName("description")
+    val description: String?,
+
+    @SerializedName("instructions")
+    val instructions: String,
+
+    @SerializedName("cooking_time")
+    val cookingTime: Int?,
+
+    @SerializedName("difficulty")
+    val difficulty: String?,
+
+    @SerializedName("image_url")
+    val imageUrl: String?,
+
+    @SerializedName("created_at")
+    val createdAt: String?
+)
+
