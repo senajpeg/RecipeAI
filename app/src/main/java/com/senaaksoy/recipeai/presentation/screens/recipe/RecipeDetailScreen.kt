@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.presentation.viewmodel.FavoriteViewModel
 import com.senaaksoy.recipeai.presentation.viewmodel.RecipeDetailViewModel
 
@@ -107,7 +108,7 @@ fun RecipeDetailScreen(
                             .height(300.dp)
                     ) {
                         AsyncImage(
-                            model = recipe.imageUrl,
+                            model = recipe.imageUrl ?: R.drawable.tarif,
                             contentDescription = recipe.name,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
@@ -226,8 +227,10 @@ fun RecipeDetailScreen(
                             Spacer(modifier = Modifier.height(12.dp))
 
                             // Talimatları satırlara böl ve numaralandır
-                            val instructions = recipe.instructions.split("\r\n", "\n")
-                                .filter { it.isNotBlank() }
+                            val instructions = recipe.instructions
+                                ?.split("\r\n", "\n")
+                                ?.filter { it.isNotBlank() }
+                                ?: emptyList()
 
                             instructions.forEachIndexed { index, instruction ->
                                 InstructionStep(

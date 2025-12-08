@@ -31,21 +31,32 @@ fun RecipeTopAppBar(
         Screen.ProfileScreen.route
     )
 
-    val navigationIconComposable: (@Composable () -> Unit)? = if (currentRoute !in noBackButtonRoutes) {
-        {
-            IconButton(onClick = { navController.navigateUp() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.White)
-            }
-        }
-    } else {
-        null
+    // ✅ BU KISIM YENİ: FAVORİLER VE HOME İÇİN TITLE SIFIRLANIR
+    val finalTitle = when (currentRoute) {
+        Screen.FavoritesScreen.route -> ""
+        Screen.HomeScreen.route -> ""
+        Screen.ProfileScreen.route -> ""
+        else -> title ?: ""
     }
+
+    val navigationIconComposable: (@Composable () -> Unit)? =
+        if (currentRoute !in noBackButtonRoutes) {
+            {
+                IconButton(onClick = { navController.navigateUp() }) {
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
+            }
+        } else null
 
     if (navigationIconComposable != null) {
         TopAppBar(
             title = {
                 Text(
-                    text =title ?: "",
+                    text = finalTitle,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

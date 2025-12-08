@@ -1,7 +1,10 @@
 package com.senaaksoy.recipeai.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
+import com.senaaksoy.recipeai.data.local.entity.RecipeEntity
 import com.senaaksoy.recipeai.domain.model.Recipe
+
+// -------------------- USER DTO --------------------
 
 data class UserDto(
     val id: Int,
@@ -9,6 +12,8 @@ data class UserDto(
     val email: String,
     val createdAt: String
 )
+
+// -------------------- GEMINI MODELS --------------------
 
 data class Content(
     @SerializedName("parts")
@@ -40,7 +45,8 @@ data class ResponsePart(
     val text: String?
 )
 
-// AI'dan gelen tarifte parse edilmiş model
+// -------------------- AI GENERATED RECIPE --------------------
+
 data class AiGeneratedRecipe(
     val name: String,
     val description: String,
@@ -52,14 +58,28 @@ data class AiGeneratedRecipe(
     val canBeMade: Boolean = true
 )
 
+// ✅ AI → Recipe
+fun AiGeneratedRecipe.toRecipe(): Recipe {
+    return Recipe(
+        id = name.hashCode(),
+        name = name,
+        description = description,
+        instructions = instructions,
+        cookingTime = cookingTime,
+        difficulty = difficulty,
+        imageUrl = null,
+        createdAt = System.currentTimeMillis(),
+        ingredients = ingredients
+    )
+}
 
-// Ana Response
+// -------------------- MEAL DB MODELS --------------------
+
 data class MealDbResponse(
     @SerializedName("meals")
     val meals: List<MealDto>?
 )
 
-// Meal DTO
 data class MealDto(
     @SerializedName("idMeal")
     val idMeal: String,
@@ -82,7 +102,6 @@ data class MealDto(
     @SerializedName("strTags")
     val tags: String?,
 
-    // TÜM 20 malzeme ve ölçü alanı
     @SerializedName("strIngredient1") val ingredient1: String?,
     @SerializedName("strIngredient2") val ingredient2: String?,
     @SerializedName("strIngredient3") val ingredient3: String?,
@@ -126,7 +145,7 @@ data class MealDto(
     @SerializedName("strMeasure20") val measure20: String?
 )
 
-// Extension: Malzemeleri ölçüleriyle birlikte al
+// ✅ Ölçülü malzemeler
 fun MealDto.getIngredientsWithMeasures(): List<String> {
     val ingredientsList = listOfNotNull(
         ingredient1, ingredient2, ingredient3, ingredient4, ingredient5,
@@ -145,49 +164,27 @@ fun MealDto.getIngredientsWithMeasures(): List<String> {
     val result = mutableListOf<String>()
 
     ingredientsList.forEachIndexed { index, ingredient ->
-        if (ingredient.isNotBlank() && ingredient.trim().isNotEmpty()) {
+        if (ingredient.isNotBlank()) {
             val measure = measuresList.getOrNull(index)
-            if (!measure.isNullOrBlank() && measure.trim().isNotEmpty()) {
+            if (!measure.isNullOrBlank()) {
                 result.add("${measure.trim()} ${ingredient.trim()}")
             } else {
                 result.add(ingredient.trim())
             }
         }
     }
-
     return result
 }
 
-// Extension: Sadece malzeme isimleri (ölçü olmadan)
-fun MealDto.getIngredients(): List<String> {
-    return listOfNotNull(
-        ingredient1, ingredient2, ingredient3, ingredient4, ingredient5,
-        ingredient6, ingredient7, ingredient8, ingredient9, ingredient10,
-        ingredient11, ingredient12, ingredient13, ingredient14, ingredient15,
-        ingredient16, ingredient17, ingredient18, ingredient19, ingredient20
-    ).filter { it.isNotBlank() && it.trim().isNotEmpty() }
-}
-
-// Extension: MealDto -> Recipe Domain Model
+// ✅ Meal → Recipe
 fun MealDto.toRecipe(): Recipe {
-    val ingredients = getIngredientsWithMeasures()  // Ölçüleriyle birlikte al
-    val description = buildString {
-        append(category ?: "")
-        if (area != null) {
-            if (isNotEmpty()) append(" • ")
-            append(area)
-        }
-        if (ingredients.isNotEmpty()) {
-            if (isNotEmpty()) append(" • ")
-            append("${ingredients.size} malzeme")
-        }
-    }
+    val ingredients = getIngredientsWithMeasures()
 
     return Recipe(
         id = idMeal.toIntOrNull() ?: idMeal.hashCode(),
         name = name,
-        description = description.ifEmpty { "Lezzetli bir tarif" },
-        instructions = instructions ?: "Tarif detayları yükleniyor...",
+        description = category ?: "Lezzetli bir tarif",
+        instructions = instructions ?: "Tarif yükleniyor...",
         cookingTime = null,
         difficulty = when {
             ingredients.size <= 5 -> "Kolay"
@@ -196,9 +193,12 @@ fun MealDto.toRecipe(): Recipe {
         },
         imageUrl = imageUrl,
         createdAt = System.currentTimeMillis(),
-        ingredients = ingredients  // Ölçülü malzeme listesi
+        ingredients = ingredients
     )
 }
+
+// -------------------- BACKEND RECIPE DTO --------------------
+
 data class RecipeDto(
     @SerializedName("id")
     val id: Int,
@@ -221,7 +221,17 @@ data class RecipeDto(
     @SerializedName("image_url")
     val imageUrl: String?,
 
+    @SerializedName("ingredients")
+    val ingredients: List<String>? = null,
+
     @SerializedName("created_at")
     val createdAt: String?
 )
+
+
+
+
+
+
+
 

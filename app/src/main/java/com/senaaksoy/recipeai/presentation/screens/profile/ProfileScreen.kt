@@ -39,6 +39,7 @@ import androidx.navigation.NavController
 import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.navigation.Screen
 import com.senaaksoy.recipeai.navigation.navigateSingleTopClear
+import com.senaaksoy.recipeai.presentation.viewmodel.AddRecipeViewModel
 import com.senaaksoy.recipeai.presentation.viewmodel.AuthViewModel
 import com.senaaksoy.recipeai.presentation.viewmodel.FavoriteViewModel
 import com.senaaksoy.recipeai.utills.ImageUtils
@@ -50,7 +51,9 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     navController: NavController,
     authViewModel: AuthViewModel = hiltViewModel(),
-    favoriteViewModel: FavoriteViewModel = hiltViewModel() // ✅ EKLENDI
+    favoriteViewModel: FavoriteViewModel = hiltViewModel(),
+    addRecipeViewModel: AddRecipeViewModel = hiltViewModel()
+
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -59,6 +62,8 @@ fun ProfileScreen(
     val userProfile by authViewModel.userProfile.collectAsState()
     val profilePictureState by authViewModel.profilePictureState.collectAsState()
     val favoriteCount by favoriteViewModel.favoriteCount.collectAsState() // ✅ EKLENDI
+    val generatedRecipeCount by addRecipeViewModel.generatedCount.collectAsState()
+
 
     var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var showToast by remember { mutableStateOf<String?>(null) }
@@ -245,7 +250,7 @@ fun ProfileScreen(
 
             ProfileInfoCard(
                 title = stringResource(R.string.recipes),
-                count = 12,
+                count = generatedRecipeCount,
                 icon = Icons.Default.Restaurant,
                 modifier = Modifier.fillMaxWidth(0.85f)
             )

@@ -3,7 +3,7 @@ package com.senaaksoy.recipeai.data.remote.dto
 import com.senaaksoy.recipeai.data.local.entity.RecipeEntity
 import com.senaaksoy.recipeai.domain.model.Recipe
 
-// DTO -> Domain Model
+// ✅ DTO -> DOMAIN (FAVORİ + DETAY EKRANI İÇİN)
 fun RecipeDto.toRecipe(): Recipe {
     return Recipe(
         id = id,
@@ -14,11 +14,11 @@ fun RecipeDto.toRecipe(): Recipe {
         difficulty = difficulty,
         imageUrl = imageUrl,
         createdAt = System.currentTimeMillis(),
-        ingredients = emptyList()
+        ingredients = ingredients ?: emptyList() // ✅ KRİTİK FIX
     )
 }
 
-// DTO -> Entity
+// ✅ DTO -> ENTITY (ROOM KAYIT)
 fun RecipeDto.toEntity(): RecipeEntity {
     return RecipeEntity(
         id = id,
@@ -32,7 +32,7 @@ fun RecipeDto.toEntity(): RecipeEntity {
     )
 }
 
-// Entity -> Domain Model
+// ✅ ENTITY -> DOMAIN (ROOM'DAN OKUMA)
 fun RecipeEntity.toRecipe(): Recipe {
     return Recipe(
         id = id,
@@ -46,7 +46,7 @@ fun RecipeEntity.toRecipe(): Recipe {
     )
 }
 
-// Domain Model -> Entity
+// ✅ DOMAIN -> ENTITY (ROOM'A YAZMA)
 fun Recipe.toEntity(): RecipeEntity {
     return RecipeEntity(
         id = id,

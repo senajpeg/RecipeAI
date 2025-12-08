@@ -85,34 +85,55 @@ class RecipeRepositoryImpl @Inject constructor(
         }
     }
 
-    // ID'ye göre tarif getir ve çevir
     override suspend fun getRecipeById(id: Int): Resource<Recipe> {
         return try {
-            val response = mealDbApi.getMealById(id.toString())
 
-            if (response.isSuccessful && response.body()?.meals != null) {
-                val meal = response.body()!!.meals?.firstOrNull()
-                if (meal != null) {
-                    val recipe = meal.toRecipe()
-                    val translatedName = translationManager.translate(recipe.name)
-                    val translatedInstructions = translationManager.translate(recipe.instructions)
+            // ✅ GEMINI veya BACKEND TARİFİ
+            if (id < 0) {
+                Log.d("RecipeRepository", "✅ Backend tarifine gidiliyor: $id")
 
-                    Resource.Success(
-                        recipe.copy(
-                            name = translatedName,
-                            instructions = translatedInstructions
-                        )
-                    )
+                val response = backendApi.getRecipeById(id)
+
+                if (response.isSuccessful && response.body() != null) {
+                    val recipe = response.body()!!.toRecipe()
+                   return Resource.Success(recipe)
                 } else {
-                    Resource.Error("Tarif bulunamadı")
+                   return Resource.Error("Backend tarif getirilemedi")
                 }
-            } else {
-                Resource.Error("Tarif getirilemedi")
+
             }
+            // ✅ MEALDB TARİFİ
+            else {
+                Log.d("RecipeRepository", "✅ MealDB tarifine gidiliyor: $id")
+
+                val response = mealDbApi.getMealById(id.toString())
+
+                if (response.isSuccessful && response.body()?.meals != null) {
+                    val meal = response.body()!!.meals?.firstOrNull()
+                    if (meal != null) {
+                        val recipe = meal.toRecipe()
+                        val translatedName = translationManager.translate(recipe.name)
+                        val translatedInstructions = translationManager.translate(recipe.instructions)
+
+                        Resource.Success(
+                            recipe.copy(
+                                name = translatedName,
+                                instructions = translatedInstructions
+                            )
+                        )
+                    } else {
+                        Resource.Error("Tarif bulunamadı")
+                    }
+                } else {
+                    Resource.Error("Tarif getirilemedi")
+                }
+            }
+
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Hata oluştu")
         }
     }
+
 
     // Arama yap ve çevir
     suspend fun searchRecipes(query: String): Resource<List<Recipe>> {

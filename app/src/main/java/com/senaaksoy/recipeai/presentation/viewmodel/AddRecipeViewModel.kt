@@ -20,6 +20,10 @@ class AddRecipeViewModel @Inject constructor(
     private val _state = MutableStateFlow(AddRecipeState())
     val state: StateFlow<AddRecipeState> = _state.asStateFlow()
 
+    private val _generatedCount = MutableStateFlow(0)
+    val generatedCount: StateFlow<Int> = _generatedCount.asStateFlow()
+
+
     fun addIngredient(ingredient: String) {
         val currentIngredients = _state.value.ingredients.toMutableList()
         if (!currentIngredients.contains(ingredient)) {
@@ -52,6 +56,7 @@ class AddRecipeViewModel @Inject constructor(
                         generatedRecipe = result.data,
                         error = null
                     )
+                    _generatedCount.value += 1
                 }
                 is Resource.Error -> {
                     _state.value = _state.value.copy(

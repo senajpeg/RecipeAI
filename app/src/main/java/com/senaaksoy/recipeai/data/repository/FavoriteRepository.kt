@@ -46,6 +46,10 @@ class FavoriteRepository @Inject constructor(
                 _favoriteStates.value = _favoriteStates.value + newStates
 
                 Log.d("FavoriteRepo", "✅ ${recipes.size} favori yüklendi")
+                recipes.forEach {
+                    Log.d("FavoriteRepo", "  - ${it.name} (${it.ingredients?.size ?: 0} malzeme)")
+                }
+
                 Resource.Success(recipes)
             } else {
                 val errorBody = response.errorBody()?.string()
@@ -82,8 +86,11 @@ class FavoriteRepository @Inject constructor(
         return try {
             val currentlyFavorite = _favoriteStates.value[recipe.id] ?: false
 
-            Log.d("FavoriteRepo", "Toggling favorite for ${recipe.name} (ID: ${recipe.id})")
+            Log.d("FavoriteRepo", "=== TOGGLE FAVORITE ===")
+            Log.d("FavoriteRepo", "Recipe: ${recipe.name}")
+            Log.d("FavoriteRepo", "ID: ${recipe.id}")
             Log.d("FavoriteRepo", "Current state: $currentlyFavorite")
+            Log.d("FavoriteRepo", "Ingredients: ${recipe.ingredients?.joinToString()}")
 
             val response = if (currentlyFavorite) {
                 Log.d("FavoriteRepo", "Removing from favorites...")
@@ -91,7 +98,7 @@ class FavoriteRepository @Inject constructor(
             } else {
                 Log.d("FavoriteRepo", "Adding to favorites...")
 
-                // ✅ Tarif verisini backend'e gönder
+                // ✅ İNGREDIENTS DAHİL GÖNDER
                 val request = AddFavoriteRequest(
                     id = recipe.id,
                     name = recipe.name,
@@ -99,10 +106,14 @@ class FavoriteRepository @Inject constructor(
                     instructions = recipe.instructions,
                     cookingTime = recipe.cookingTime,
                     difficulty = recipe.difficulty,
-                    imageUrl = recipe.imageUrl
+                    imageUrl = recipe.imageUrl,
+                    ingredients = recipe.ingredients  // ✅ EKLENDI
                 )
 
-                Log.d("FavoriteRepo", "Sending recipe data: ${request.name}")
+                Log.d("FavoriteRepo", "Request payload:")
+                Log.d("FavoriteRepo", "  - name: ${request.name}")
+                Log.d("FavoriteRepo", "  - ingredients: ${request.ingredients?.size ?: 0} items")
+
                 api.addFavorite(recipe.id, getAuthToken(), request)
             }
 
@@ -125,6 +136,7 @@ class FavoriteRepository @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e("FavoriteRepo", "❌ Toggle error: ${e.message}", e)
+            e.printStackTrace()
             Resource.Error(e.localizedMessage ?: "Hata oluştu")
         }
     }

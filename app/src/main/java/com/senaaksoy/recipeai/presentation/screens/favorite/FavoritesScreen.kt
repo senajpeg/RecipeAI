@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.domain.model.Recipe
 import com.senaaksoy.recipeai.navigation.Screen
 import com.senaaksoy.recipeai.presentation.viewmodel.FavoriteViewModel
@@ -117,7 +118,7 @@ fun FavoriteRecipeCard(
                 .padding(12.dp)
         ) {
             AsyncImage(
-                model = recipe.imageUrl,
+                model = recipe.imageUrl ?: R.drawable.tarif,
                 contentDescription = recipe.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

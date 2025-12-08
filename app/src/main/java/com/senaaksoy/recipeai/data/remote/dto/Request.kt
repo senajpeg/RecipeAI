@@ -38,6 +38,7 @@ data class AddFavoriteRequest(
     val instructions: String,
     val cookingTime: Int?,
     val difficulty: String?,
-    val imageUrl: String?
+    val imageUrl: String?,
+    val ingredients: List<String>? = null
 
 )
