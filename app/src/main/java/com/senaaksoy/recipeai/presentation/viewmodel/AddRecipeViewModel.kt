@@ -1,8 +1,11 @@
 package com.senaaksoy.recipeai.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.senaaksoy.recipeai.data.remote.Resource
+import com.senaaksoy.recipeai.data.remote.api.RecipeApiService
+import com.senaaksoy.recipeai.data.remote.dto.RecipeDto
 import com.senaaksoy.recipeai.data.repository.GeminiRepository
 import com.senaaksoy.recipeai.presentation.state.AddRecipeState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,15 +17,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddRecipeViewModel @Inject constructor(
-    private val geminiRepository: GeminiRepository
+    private val geminiRepository: GeminiRepository,
+    private val recipeApi: RecipeApiService  // ✅ BACKEND API EKLENDI
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddRecipeState())
     val state: StateFlow<AddRecipeState> = _state.asStateFlow()
-
-    private val _generatedCount = MutableStateFlow(0)
-    val generatedCount: StateFlow<Int> = _generatedCount.asStateFlow()
-
 
     fun addIngredient(ingredient: String) {
         val currentIngredients = _state.value.ingredients.toMutableList()
@@ -51,12 +51,17 @@ class AddRecipeViewModel @Inject constructor(
 
             when (val result = geminiRepository.generateRecipe(ingredients)) {
                 is Resource.Success -> {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        generatedRecipe = result.data,
-                        error = null
-                    )
-                    _generatedCount.value += 1
+                    val aiRecipe = result.data
+
+                    if (aiRecipe != null) {
+                        // ✅ BACKEND'E KAYDET
+                        saveRecipeToBackend(aiRecipe)
+                    } else {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = "Tarif oluşturulamadı"
+                        )
+                    }
                 }
                 is Resource.Error -> {
                     _state.value = _state.value.copy(
@@ -68,6 +73,63 @@ class AddRecipeViewModel @Inject constructor(
                     // Loading zaten set edildi
                 }
             }
+        }
+    }
+
+    // ✅ YENİ: Backend'e tarif kaydetme
+    private suspend fun saveRecipeToBackend(aiRecipe: com.senaaksoy.recipeai.data.remote.dto.AiGeneratedRecipe) {
+        try {
+            Log.d("AddRecipeVM", "🔵 Tarif backend'e kaydediliyor: ${aiRecipe.name}")
+
+            // ✅ Negatif ID kullan (Gemini tarifleri için)
+            val recipeId = -System.currentTimeMillis().toInt()
+
+            val recipeDto = RecipeDto(
+                id = recipeId,
+                name = aiRecipe.name,
+                description = aiRecipe.description,
+                instructions = aiRecipe.instructions,
+                cookingTime = aiRecipe.cookingTime,
+                difficulty = aiRecipe.difficulty,
+                imageUrl = null,
+                ingredients = aiRecipe.ingredients,
+                createdAt = null
+            )
+
+            val response = recipeApi.createRecipe(recipeDto)
+
+            if (response.isSuccessful && response.body() != null) {
+                val savedRecipe = response.body()!!
+                Log.d("AddRecipeVM", "✅ Tarif backend'e kaydedildi! ID: ${savedRecipe.id}")
+
+                // ✅ State'i güncelle - kaydedilen recipe'yi kullan
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    generatedRecipe = aiRecipe,
+                    savedRecipeId = savedRecipe.id,  // Kaydedilen ID'yi sakla
+                    error = null
+                )
+            } else {
+                val errorBody = response.errorBody()?.string()
+                Log.e("AddRecipeVM", "❌ Backend kayıt hatası: $errorBody")
+
+                // Hata olsa bile AI recipe'yi göster ama uyarı ver
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    generatedRecipe = aiRecipe,
+                    error = "Tarif oluşturuldu ama kaydedilemedi"
+                )
+            }
+
+        } catch (e: Exception) {
+            Log.e("AddRecipeVM", "❌ Backend kayıt exception: ${e.message}", e)
+
+            // Exception olsa bile AI recipe'yi göster
+            _state.value = _state.value.copy(
+                isLoading = false,
+                generatedRecipe = aiRecipe,
+                error = "Tarif oluşturuldu ama kaydedilemedi: ${e.message}"
+            )
         }
     }
 

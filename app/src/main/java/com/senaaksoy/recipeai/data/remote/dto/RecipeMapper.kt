@@ -14,7 +14,7 @@ fun RecipeDto.toRecipe(): Recipe {
         difficulty = difficulty,
         imageUrl = imageUrl,
         createdAt = System.currentTimeMillis(),
-        ingredients = ingredients ?: emptyList() // ✅ KRİTİK FIX
+        ingredients = ingredients ?: emptyList()
     )
 }
 

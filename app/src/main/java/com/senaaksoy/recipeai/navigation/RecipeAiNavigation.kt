@@ -1,6 +1,10 @@
 package com.senaaksoy.recipeai.navigation
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -8,6 +12,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -37,6 +43,11 @@ fun RecipeAiNavigation() {
 
     var topBarTitle by remember { mutableStateOf<String?>(null) }
 
+    val showFab = currentRoute in listOf(
+        Screen.HomeScreen.route,
+        Screen.FavoritesScreen.route,
+        Screen.ProfileScreen.route
+    )
 
     Scaffold(
         topBar = {
@@ -50,11 +61,29 @@ fun RecipeAiNavigation() {
             if (currentRoute in listOf(
                     Screen.HomeScreen.route,
                     Screen.FavoritesScreen.route,
-                    Screen.SearchScreen.route,
                     Screen.ProfileScreen.route
                 )
             ) {
                 BottomNavigationBar(navController = navController, currentRoute = currentRoute)
+            }
+        },
+        // ✅ FLOATING ACTION BUTTON
+        floatingActionButton = {
+            if (showFab) {
+                FloatingActionButton(
+                    onClick = {
+                        navController.navigate(Screen.AddRecipeScreen.route)
+                    },
+                    containerColor = Color(0xFF667EEA), // Mor-mavi gradient ton
+                    contentColor = Color.White,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Tarif Ekle",
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -89,15 +118,12 @@ fun RecipeAiNavigation() {
                 RecipeDetailScreen(
                     navController = navController,
                     onRecipeLoaded = { name ->
-                        topBarTitle=name
+                        topBarTitle = name
                     }
                 )
             }
             composable(route = Screen.FavoritesScreen.route) {
                 FavoritesScreen(navController = navController)
-            }
-            composable(route = Screen.SearchScreen.route) {
-
             }
             composable(route = Screen.ProfileScreen.route) {
                 ProfileScreen(navController = navController)

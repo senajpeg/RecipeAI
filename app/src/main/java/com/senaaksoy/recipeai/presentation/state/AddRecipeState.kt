@@ -13,5 +13,6 @@ data class AddRecipeState(
     val error: String? = null,
     val isSuccess: Boolean = false,
     val ingredients: List<String> = emptyList(),
-    val generatedRecipe: AiGeneratedRecipe? = null
+    val generatedRecipe: AiGeneratedRecipe? = null,
+    val savedRecipeId: Int? = null
 )

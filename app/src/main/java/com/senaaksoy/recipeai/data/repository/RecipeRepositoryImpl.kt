@@ -19,14 +19,12 @@ class RecipeRepositoryImpl @Inject constructor(
     private val translationManager: TranslationManager
 ) : RecipeRepository {
 
-    // Local'den Flow ile tarifleri dinle
     override fun getAllRecipesFromLocal(): Flow<List<Recipe>> {
         return dao.getAllRecipes().map { entities ->
             entities.map { it.toRecipe() }
         }
     }
 
-    // MealDB'den tarifleri çek ve çevir
     override suspend fun syncRecipesFromApi(): Resource<List<Recipe>> {
         return try {
             Log.d("RecipeRepository", "🔵 MealDB'den tarifler çekiliyor...")
@@ -45,15 +43,12 @@ class RecipeRepositoryImpl @Inject constructor(
                             ?.mapNotNull { mealDto ->
                                 try {
                                     val recipe = mealDto.toRecipe()
-
-                                    // ⚠️ Çeviri hatasını yakala
                                     val translatedName = try {
                                         translationManager.translate(recipe.name)
                                     } catch (e: Exception) {
-                                        Log.e("RecipeRepository", "⚠️ Çeviri hatası: ${e.message}")
-                                        recipe.name // Çevrilemezse orijinal ismi kullan
+                                        Log.e("RecipeRepository", "⚠️ İsim çeviri hatası: ${e.message}")
+                                        recipe.name
                                     }
-
                                     recipe.copy(name = translatedName)
                                 } catch (e: Exception) {
                                     Log.e("RecipeRepository", "❌ Tarif dönüştürme hatası: ${e.message}")
@@ -63,8 +58,6 @@ class RecipeRepositoryImpl @Inject constructor(
 
                         allRecipes.addAll(recipes)
                         Log.d("RecipeRepository", "✅ $category: ${recipes.size} tarif eklendi")
-                    } else {
-                        Log.e("RecipeRepository", "❌ $category: Response başarısız")
                     }
                 } catch (e: Exception) {
                     Log.e("RecipeRepository", "❌ $category hatası: ${e.message}")
@@ -87,24 +80,29 @@ class RecipeRepositoryImpl @Inject constructor(
 
     override suspend fun getRecipeById(id: Int): Resource<Recipe> {
         return try {
+            Log.d("RecipeRepository", "🔍 Tarif getiriliyor: $id")
 
-            // ✅ GEMINI veya BACKEND TARİFİ
+            // ✅ NEGATİF ID = BACKEND (Gemini tarifleri)
             if (id < 0) {
-                Log.d("RecipeRepository", "✅ Backend tarifine gidiliyor: $id")
+                Log.d("RecipeRepository", "🤖 Backend/Gemini tarifine gidiliyor: $id")
 
                 val response = backendApi.getRecipeById(id)
+                Log.d("RecipeRepository", "Response code: ${response.code()}")
 
                 if (response.isSuccessful && response.body() != null) {
                     val recipe = response.body()!!.toRecipe()
-                   return Resource.Success(recipe)
+                    Log.d("RecipeRepository", "✅ Backend tarif bulundu: ${recipe.name}")
+                    Log.d("RecipeRepository", "   Ingredients: ${recipe.ingredients?.size ?: 0}")
+                    return Resource.Success(recipe)
                 } else {
-                   return Resource.Error("Backend tarif getirilemedi")
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("RecipeRepository", "❌ Backend error: $errorBody")
+                    return Resource.Error("Backend tarif getirilemedi: ${response.code()}")
                 }
-
             }
-            // ✅ MEALDB TARİFİ
+            // ✅ POZİTİF ID = MEALDB
             else {
-                Log.d("RecipeRepository", "✅ MealDB tarifine gidiliyor: $id")
+                Log.d("RecipeRepository", "🍔 MealDB tarifine gidiliyor: $id")
 
                 val response = mealDbApi.getMealById(id.toString())
 
@@ -112,30 +110,59 @@ class RecipeRepositoryImpl @Inject constructor(
                     val meal = response.body()!!.meals?.firstOrNull()
                     if (meal != null) {
                         val recipe = meal.toRecipe()
-                        val translatedName = translationManager.translate(recipe.name)
-                        val translatedInstructions = translationManager.translate(recipe.instructions)
+
+                        // ✅ İsim çevirisi
+                        val translatedName = try {
+                            translationManager.translate(recipe.name)
+                        } catch (e: Exception) {
+                            Log.e("RecipeRepository", "⚠️ İsim çeviri hatası: ${e.message}")
+                            recipe.name
+                        }
+
+                        // ✅ Talimat çevirisi
+                        val translatedInstructions = try {
+                            translationManager.translate(recipe.instructions)
+                        } catch (e: Exception) {
+                            Log.e("RecipeRepository", "⚠️ Talimat çeviri hatası: ${e.message}")
+                            recipe.instructions
+                        }
+
+                        // ✅ MALZEMELERİ ÇEVİR
+                        val translatedIngredients = try {
+                            recipe.ingredients?.map { ingredient ->
+                                try {
+                                    translationManager.translate(ingredient)
+                                } catch (e: Exception) {
+                                    Log.e("RecipeRepository", "⚠️ Malzeme çeviri hatası: ${e.message}")
+                                    ingredient // Hata olursa orijinal malzemeyi kullan
+                                }
+                            } ?: emptyList()
+                        } catch (e: Exception) {
+                            Log.e("RecipeRepository", "❌ Malzemeler çeviri hatası: ${e.message}")
+                            recipe.ingredients ?: emptyList()
+                        }
 
                         Resource.Success(
                             recipe.copy(
                                 name = translatedName,
-                                instructions = translatedInstructions
+                                instructions = translatedInstructions,
+                                ingredients = translatedIngredients  // ✅ ÇEVRİLMİŞ MALZEMELER
                             )
                         )
                     } else {
-                        Resource.Error("Tarif bulunamadı")
+                        Resource.Error("MealDB'de tarif bulunamadı")
                     }
                 } else {
-                    Resource.Error("Tarif getirilemedi")
+                    Resource.Error("MealDB tarif getirilemedi")
                 }
             }
 
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Hata oluştu")
+            Log.e("RecipeRepository", "❌ getRecipeById error: ${e.message}", e)
+            Resource.Error(e.localizedMessage ?: "Tarif yüklenemedi")
         }
     }
 
-
-    // Arama yap ve çevir
     suspend fun searchRecipes(query: String): Resource<List<Recipe>> {
         return try {
             if (query.isBlank()) {
@@ -149,8 +176,32 @@ class RecipeRepositoryImpl @Inject constructor(
                     ?.mapNotNull { mealDto ->
                         try {
                             val recipe = mealDto.toRecipe()
-                            val translatedName = translationManager.translate(recipe.name)
-                            recipe.copy(name = translatedName)
+
+                            // ✅ İsmi çevir
+                            val translatedName = try {
+                                translationManager.translate(recipe.name)
+                            } catch (e: Exception) {
+                                Log.e("RecipeRepository", "⚠️ İsim çeviri hatası: ${e.message}")
+                                recipe.name
+                            }
+
+                            // ✅ Malzemeleri çevir
+                            val translatedIngredients = try {
+                                recipe.ingredients?.map { ingredient ->
+                                    try {
+                                        translationManager.translate(ingredient)
+                                    } catch (e: Exception) {
+                                        ingredient
+                                    }
+                                } ?: emptyList()
+                            } catch (e: Exception) {
+                                recipe.ingredients ?: emptyList()
+                            }
+
+                            recipe.copy(
+                                name = translatedName,
+                                ingredients = translatedIngredients
+                            )
                         } catch (e: Exception) {
                             null
                         }
@@ -169,7 +220,6 @@ class RecipeRepositoryImpl @Inject constructor(
         }
     }
 
-
     suspend fun getRandomRecipes(count: Int = 3): Resource<List<Recipe>> {
         return try {
             Log.d("RecipeRepository", "🎲 $count adet random tarif çekiliyor...")
@@ -183,22 +233,38 @@ class RecipeRepositoryImpl @Inject constructor(
                             try {
                                 val recipe = mealDto.toRecipe()
 
-                                // ⚠️ Çeviri hatasını yakala
+                                // ✅ İsmi çevir
                                 val translatedName = try {
                                     translationManager.translate(recipe.name)
                                 } catch (e: Exception) {
-                                    Log.e("RecipeRepository", "⚠️ Çeviri hatası: ${e.message}")
+                                    Log.e("RecipeRepository", "⚠️ İsim çeviri hatası: ${e.message}")
                                     recipe.name
                                 }
 
-                                recipes.add(recipe.copy(name = translatedName))
-                                Log.d("RecipeRepository", "✅ Random tarif ${index + 1}: ${recipe.name}")
+                                // ✅ Malzemeleri çevir
+                                val translatedIngredients = try {
+                                    recipe.ingredients?.map { ingredient ->
+                                        try {
+                                            translationManager.translate(ingredient)
+                                        } catch (e: Exception) {
+                                            ingredient
+                                        }
+                                    } ?: emptyList()
+                                } catch (e: Exception) {
+                                    recipe.ingredients ?: emptyList()
+                                }
+
+                                recipes.add(
+                                    recipe.copy(
+                                        name = translatedName,
+                                        ingredients = translatedIngredients
+                                    )
+                                )
+                                Log.d("RecipeRepository", "✅ Random tarif ${index + 1}: ${translatedName}")
                             } catch (e: Exception) {
                                 Log.e("RecipeRepository", "❌ Random tarif dönüştürme hatası", e)
                             }
                         }
-                    } else {
-                        Log.e("RecipeRepository", "❌ Random tarif ${index + 1}: Response başarısız")
                     }
                 } catch (e: Exception) {
                     Log.e("RecipeRepository", "❌ Random tarif ${index + 1} hatası: ${e.message}")
@@ -206,19 +272,15 @@ class RecipeRepositoryImpl @Inject constructor(
             }
 
             if (recipes.isNotEmpty()) {
-                Log.d("RecipeRepository", "✅ ${recipes.size} random tarif yüklendi")
                 Resource.Success(recipes)
             } else {
-                Log.e("RecipeRepository", "❌ Hiç random tarif yüklenemedi!")
                 Resource.Error("Random tarifler yüklenemedi")
             }
         } catch (e: Exception) {
-            Log.e("RecipeRepository", "❌ Random tarifler FATAL: ${e.message}", e)
             Resource.Error(e.localizedMessage ?: "Hata oluştu")
         }
     }
 
-    // Local operations
     override suspend fun createRecipe(recipe: Recipe): Resource<Recipe> {
         return Resource.Error("Henüz desteklenmiyor")
     }

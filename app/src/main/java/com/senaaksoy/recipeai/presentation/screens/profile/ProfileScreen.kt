@@ -18,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,7 +38,6 @@ import androidx.navigation.NavController
 import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.navigation.Screen
 import com.senaaksoy.recipeai.navigation.navigateSingleTopClear
-import com.senaaksoy.recipeai.presentation.viewmodel.AddRecipeViewModel
 import com.senaaksoy.recipeai.presentation.viewmodel.AuthViewModel
 import com.senaaksoy.recipeai.presentation.viewmodel.FavoriteViewModel
 import com.senaaksoy.recipeai.utills.ImageUtils
@@ -51,72 +49,55 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     navController: NavController,
     authViewModel: AuthViewModel = hiltViewModel(),
-    favoriteViewModel: FavoriteViewModel = hiltViewModel(),
-    addRecipeViewModel: AddRecipeViewModel = hiltViewModel()
-
+    favoriteViewModel: FavoriteViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // State'ler
     val userProfile by authViewModel.userProfile.collectAsState()
     val profilePictureState by authViewModel.profilePictureState.collectAsState()
-    val favoriteCount by favoriteViewModel.favoriteCount.collectAsState() // ✅ EKLENDI
-    val generatedRecipeCount by addRecipeViewModel.generatedCount.collectAsState()
-
+    val favoriteCount by favoriteViewModel.favoriteCount.collectAsState()
 
     var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var showToast by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
-    // Profil bilgilerini yükle - Her açılışta
     LaunchedEffect(Unit) {
         Log.d("ProfileScreen", "Loading user profile")
         authViewModel.loadUserProfile()
-        favoriteViewModel.loadFavorites() // ✅ EKLENDI
+        favoriteViewModel.loadFavorites()
     }
 
-    // Profil fotoğrafını yükle ve göster
     LaunchedEffect(userProfile) {
         val base64 = userProfile?.profile_picture
         Log.d("ProfileScreen", "UserProfile changed")
         Log.d("ProfileScreen", "Profile picture available: ${base64 != null}")
-        Log.d("ProfileScreen", "Profile picture length: ${base64?.length ?: 0}")
 
         if (!base64.isNullOrEmpty()) {
-            Log.d("ProfileScreen", "First 100 chars: ${base64.take(100)}")
             val bitmap = ImageUtils.base64ToBitmap(base64)
             if (bitmap != null) {
                 profileBitmap = bitmap
-                Log.d("ProfileScreen", "Bitmap loaded successfully: ${bitmap.width}x${bitmap.height}")
-            } else {
-                Log.e("ProfileScreen", "Failed to convert base64 to bitmap")
+                Log.d("ProfileScreen", "Bitmap loaded successfully")
             }
         } else {
-            Log.w("ProfileScreen", "No profile picture available")
             profileBitmap = null
         }
     }
 
-    // Profil fotoğrafı güncelleme sonucunu dinle
     LaunchedEffect(profilePictureState) {
         when (val state = profilePictureState) {
             is Resource.Success -> {
                 showToast = "Profil fotoğrafı güncellendi"
                 isLoading = false
-                Log.d("ProfileScreen", "Upload successful, reloading profile")
-                // Biraz bekle ve profili yeniden yükle
                 delay(500)
                 authViewModel.loadUserProfile()
             }
             is Resource.Error -> {
                 showToast = state.message ?: "Hata oluştu"
                 isLoading = false
-                Log.e("ProfileScreen", "Upload error: ${state.message}")
             }
             is Resource.Loading -> {
                 isLoading = true
-                Log.d("ProfileScreen", "Upload in progress")
             }
             else -> {
                 isLoading = false
@@ -124,26 +105,21 @@ fun ProfileScreen(
         }
     }
 
-    // Galeri launcher
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
             coroutineScope.launch {
-                Log.d("ProfileScreen", "Image selected: $uri")
                 val base64 = ImageUtils.uriToBase64(context, it)
                 if (base64 != null) {
-                    Log.d("ProfileScreen", "Base64 created (length: ${base64.length}), uploading...")
                     authViewModel.updateProfilePicture(base64)
                 } else {
                     showToast = "Fotoğraf yüklenemedi"
-                    Log.e("ProfileScreen", "Failed to convert URI to base64")
                 }
             }
         }
     }
 
-    // İzin launcher
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -154,7 +130,6 @@ fun ProfileScreen(
         }
     }
 
-    // Animasyonlar
     val infiniteTransition = rememberInfiniteTransition(label = "background")
     val offsetAnim by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -219,7 +194,6 @@ fun ProfileScreen(
                     )
                 }
 
-                // Loading indicator
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(30.dp),
@@ -248,18 +222,10 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(40.dp))
 
-            ProfileInfoCard(
-                title = stringResource(R.string.recipes),
-                count = generatedRecipeCount,
-                icon = Icons.Default.Restaurant,
-                modifier = Modifier.fillMaxWidth(0.85f)
-            )
-
-            Spacer(Modifier.height(20.dp))
-
+            // ✅ SADECE FAVORİLER KARTI KALDI
             ProfileInfoCard(
                 title = stringResource(R.string.my_favorites),
-                count = favoriteCount, // ✅ DEĞİŞTİ: 25 yerine favoriteCount
+                count = favoriteCount,
                 icon = Icons.Default.Favorite,
                 modifier = Modifier.fillMaxWidth(0.85f)
             )
@@ -323,7 +289,6 @@ fun ProfileScreen(
         }
     }
 
-    // Toast mesajı
     showToast?.let { message ->
         LaunchedEffect(message) {
             android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
@@ -340,7 +305,6 @@ fun ProfileInfoCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     modifier: Modifier = Modifier
 ) {
-    // ✅ BONUS: Animasyonlu sayı güncellemesi
     val animatedCount by animateIntAsState(
         targetValue = count,
         animationSpec = tween(durationMillis = 300),
@@ -367,7 +331,7 @@ fun ProfileInfoCard(
         Text(text = title, color = Color.White, fontSize = 17.sp)
 
         Text(
-            text = animatedCount.toString(), // ✅ DEĞİŞTİ: Animasyonlu sayı
+            text = animatedCount.toString(),
             color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold

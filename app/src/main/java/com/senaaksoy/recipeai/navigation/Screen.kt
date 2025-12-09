@@ -8,7 +8,6 @@ enum class Screen(val route: String) {
     RecipeDetailScreen(route = "RecipeDetailScreen/{recipeId}"),
     AddRecipeScreen(route = "AddRecipeScreen"),
     FavoritesScreen(route = "FavoritesScreen"),
-    SearchScreen(route = "SearchScreen"),
     ForgotPasswordScreen(route = "ForgotPasswordScreen"),
     ProfileScreen(route = "ProfileScreen"),
     ResetPasswordScreen(route = "ResetPasswordScreen?oobCode={token}");

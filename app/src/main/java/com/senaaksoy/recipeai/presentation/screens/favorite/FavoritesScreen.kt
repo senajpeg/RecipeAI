@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -104,6 +105,48 @@ fun FavoriteRecipeCard(
     onClick: () -> Unit,
     onRemove: () -> Unit
 ) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    // ✅ Silme onay dialogu
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = {
+                Text(
+                    text = "Favoriden Çıkar",
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF667EEA)
+                )
+            },
+            text = {
+                Text(
+                    text = "${recipe.name} tarifini favorilerden çıkarmak istediğinize emin misiniz?",
+                    color = Color.DarkGray
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onRemove()
+                        showDeleteDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFE53935)
+                    )
+                ) {
+                    Text("Çıkar", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("İptal", color = Color(0xFF667EEA))
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -160,13 +203,31 @@ fun FavoriteRecipeCard(
                 }
             }
 
-            IconButton(onClick = onRemove) {
+            // ✅ Yıldız ve Çöp Kutusu ikonları
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // ⭐ Yıldız ikonu
                 Icon(
                     imageVector = Icons.Filled.Star,
-                    contentDescription = "Favoriden Çıkar",
+                    contentDescription = "Favori",
                     tint = Color(0xFFFFD700),
                     modifier = Modifier.size(28.dp)
                 )
+
+                // 🗑️ Çöp kutusu ikonu
+                IconButton(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Favoriden Çıkar",
+                        tint = Color(0xFFE53935),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
     }
