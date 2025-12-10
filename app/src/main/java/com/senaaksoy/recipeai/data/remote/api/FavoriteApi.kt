@@ -8,7 +8,6 @@ import retrofit2.http.*
 
 interface FavoriteApi {
 
-    // ✅ BODY ile tarif verisini de gönder
     @POST("favorites/{recipeId}")
     suspend fun addFavorite(
         @Path("recipeId") recipeId: Int,

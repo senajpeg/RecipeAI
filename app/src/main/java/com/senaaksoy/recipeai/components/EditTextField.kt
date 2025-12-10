@@ -3,7 +3,6 @@ package com.senaaksoy.recipeai.components
 import androidx.annotation.StringRes
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -15,6 +14,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 @Composable
 fun EditTextField(
+    modifier: Modifier=Modifier,
     value: String,
     onValueChange: (String) -> Unit,
     @StringRes label: Int,
@@ -25,8 +25,8 @@ fun EditTextField(
     shape: RoundedCornerShape = RoundedCornerShape(12.dp),
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
     supportingText: @Composable (() -> Unit)? = null,
-    isError: Boolean = false,
-    modifier: Modifier=Modifier
+    isError: Boolean = false
+
 ) {
     OutlinedTextField(
         value = value,

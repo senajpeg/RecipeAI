@@ -55,7 +55,8 @@ fun HomeScreen(
 
     val dailySuggestions by viewModel.dailySuggestions.collectAsState()
     val discoverRecipes by viewModel.discoverRecipes.collectAsState()
-
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
 
     Box(
         modifier = Modifier
@@ -81,8 +82,8 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             EditTextField(
-                value = "",
-                onValueChange = {},
+                value = searchQuery,
+                onValueChange = { viewModel.filterRecipes(it) },
                 label = android.R.string.search_go,
                 keyboardOptions = KeyboardOptions.Default,
                 shape = RoundedCornerShape(20.dp),
@@ -93,7 +94,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = {navController.navigate(Screen.AddRecipeScreen.route) },
+                onClick = { navController.navigate(Screen.AddRecipeScreen.route) },
                 modifier = Modifier
                     .widthIn(max = 300.dp)
                     .fillMaxWidth(0.6f)
@@ -103,83 +104,17 @@ fun HomeScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.daily_suggest),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                modifier = Modifier.align(Alignment.Start)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
 
-            when (val result = dailySuggestions) {
-                is Resource.Loading -> {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        items(3) { PlaceholderRecipeCard(160.dp, 120.dp) }
-                    }
-                }
-
-                is Resource.Success -> {
-                    val recipes = result.data ?: emptyList()
-                    val listState = rememberLazyListState()
-                    var visibleIndex by remember { mutableIntStateOf(0) }
-
-                    // Auto-scroll + fade-in loop
-                    LaunchedEffect(recipes) {
-                        while (true) {
-                            delay(2200)
-                            val total = recipes.size
-                            if (total > 0) {
-                                val nextIndex = (visibleIndex + 1).mod(total)
-                                listState.animateScrollToItem(nextIndex)
-                                visibleIndex = nextIndex
-                            }
-                        }
-                    }
-
-                    LazyRow(
-                        state = listState,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        items(recipes.size) { index ->
-                            val recipe = recipes[index]
-                            AnimatedVisibility(
-                                visible = true,
-                                enter = fadeIn(animationSpec = tween(durationMillis = 600)),
-                                exit = fadeOut(animationSpec = tween(durationMillis = 600))
-                            ) {
-                                DailySuggestionCard(recipe) {
-                                    navController.navigate(Screen.createRecipeDetailRoute(recipe.id))
-                                }
-                            }
-                        }
-                    }
-                }
-
-                is Resource.Error -> {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        items(3) { PlaceholderRecipeCard(160.dp, 120.dp) }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.discover_recipe),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                modifier = Modifier.align(Alignment.Start)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            when (val result = discoverRecipes) {
-                is Resource.Loading -> {
+            // --- ARAMA VARSA SADECE ARAMA SONUÇLARINI GÖSTER ---
+            if (searchResults != null) {
+                val recipesToShow = searchResults?.data ?: emptyList()
+                if (recipesToShow.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.no_results_found),
+                        color = Color.White,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                } else {
                     LazyVerticalStaggeredGrid(
                         columns = StaggeredGridCells.Fixed(2),
                         verticalItemSpacing = 12.dp,
@@ -188,44 +123,138 @@ fun HomeScreen(
                             .fillMaxWidth()
                             .height(screenHeight * 0.7f)
                     ) {
-                        items(10) { RecipeBoxPlaceholder() }
-                    }
-                }
-
-                is Resource.Success -> {
-                    val recipes = result.data ?: emptyList()
-                    LazyVerticalStaggeredGrid(
-                        columns = StaggeredGridCells.Fixed(2),
-                        verticalItemSpacing = 12.dp,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(screenHeight * 0.7f)
-                    ) {
-                        items(recipes) { recipe ->
+                        items(recipesToShow) { recipe ->
                             RecipeBoxCard(recipe) {
                                 navController.navigate(Screen.createRecipeDetailRoute(recipe.id))
                             }
                         }
                     }
                 }
+            } else {
+                // --- SEARCH YOKSA ESKİ YAPI ---
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.daily_suggest),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
 
-                is Resource.Error -> {
-                    LazyVerticalStaggeredGrid(
-                        columns = StaggeredGridCells.Fixed(2),
-                        verticalItemSpacing = 12.dp,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(screenHeight * 0.7f)
-                    ) {
-                        items(10) { RecipeBoxPlaceholder() }
+                when (val result = dailySuggestions) {
+                    is Resource.Loading -> {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(3) { PlaceholderRecipeCard(160.dp, 120.dp) }
+                        }
+                    }
+                    is Resource.Success -> {
+                        val recipes = result.data ?: emptyList()
+                        val listState = rememberLazyListState()
+                        var visibleIndex by remember { mutableIntStateOf(0) }
+
+                        // Auto-scroll + fade-in loop
+                        LaunchedEffect(recipes) {
+                            while (true) {
+                                delay(2200)
+                                val total = recipes.size
+                                if (total > 0) {
+                                    val nextIndex = (visibleIndex + 1).mod(total)
+                                    listState.animateScrollToItem(nextIndex)
+                                    visibleIndex = nextIndex
+                                }
+                            }
+                        }
+
+                        LazyRow(
+                            state = listState,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(recipes.size) { index ->
+                                val recipe = recipes[index]
+                                AnimatedVisibility(
+                                    visible = true,
+                                    enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                                    exit = fadeOut(animationSpec = tween(durationMillis = 600))
+                                ) {
+                                    DailySuggestionCard(recipe) {
+                                        navController.navigate(Screen.createRecipeDetailRoute(recipe.id))
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    is Resource.Error -> {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(3) { PlaceholderRecipeCard(160.dp, 120.dp) }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.discover_recipe),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                when (val result = discoverRecipes) {
+                    is Resource.Loading -> {
+                        LazyVerticalStaggeredGrid(
+                            columns = StaggeredGridCells.Fixed(2),
+                            verticalItemSpacing = 12.dp,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(screenHeight * 0.7f)
+                        ) {
+                            items(10) { RecipeBoxPlaceholder() }
+                        }
+                    }
+                    is Resource.Success -> {
+                        val recipes = result.data ?: emptyList()
+                        LazyVerticalStaggeredGrid(
+                            columns = StaggeredGridCells.Fixed(2),
+                            verticalItemSpacing = 12.dp,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(screenHeight * 0.7f)
+                        ) {
+                            items(recipes) { recipe ->
+                                RecipeBoxCard(recipe) {
+                                    navController.navigate(Screen.createRecipeDetailRoute(recipe.id))
+                                }
+                            }
+                        }
+                    }
+                    is Resource.Error -> {
+                        LazyVerticalStaggeredGrid(
+                            columns = StaggeredGridCells.Fixed(2),
+                            verticalItemSpacing = 12.dp,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(screenHeight * 0.7f)
+                        ) {
+                            items(10) { RecipeBoxPlaceholder() }
+                        }
                     }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun DailySuggestionCard(recipe: Recipe, onClick: () -> Unit) {

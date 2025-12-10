@@ -55,8 +55,6 @@ class AuthRepository @Inject constructor(
                         email = body.user.email,
                         createdAt = body.user.createdAt
                     )
-
-                    // ✅ TOKEN ARTIK RESOURCE İÇİNDE
                     Resource.Success(user, body.token)
 
                 } else {

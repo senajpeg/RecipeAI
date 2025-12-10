@@ -1,6 +1,7 @@
 package com.senaaksoy.recipeai.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
+import com.senaaksoy.recipeai.data.local.entity.RecipeEntity
 import com.senaaksoy.recipeai.domain.model.Recipe
 
 // -------------------- USER DTO --------------------

@@ -30,7 +30,7 @@ data class GoogleSignInRequest(
 data class UpdateProfilePictureRequest(
     val profilePicture: String // Base64 string
 )
-// ✅ Backend'e gönderilecek request modeli
+// Backend'e gönderilecek request modeli
 data class AddFavoriteRequest(
     val id: Int,
     val name: String,

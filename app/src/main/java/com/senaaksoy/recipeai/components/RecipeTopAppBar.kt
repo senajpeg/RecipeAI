@@ -30,8 +30,6 @@ fun RecipeTopAppBar(
         Screen.HomeScreen.route,
         Screen.ProfileScreen.route
     )
-
-    // ✅ BU KISIM YENİ: FAVORİLER VE HOME İÇİN TITLE SIFIRLANIR
     val finalTitle = when (currentRoute) {
         Screen.FavoritesScreen.route -> ""
         Screen.HomeScreen.route -> ""

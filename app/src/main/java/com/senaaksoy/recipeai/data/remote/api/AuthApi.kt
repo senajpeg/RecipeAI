@@ -23,18 +23,19 @@ interface AuthApi {
 
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
-    //  Şifre sıfırlama isteği
+
     @POST("auth/forgot-password")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<MessageResponse>
 
-    //  Şifre sıfırlama (token ile)
     @POST("auth/reset-password/{token}")
     suspend fun resetPassword(
         @Path("token") token: String,
         @Body request: ResetPasswordRequest
     ): Response<MessageResponse>
+
     @POST("auth/google-signin")
     suspend fun googleSignIn(@Body request: GoogleSignInRequest): Response<AuthResponse>
+
     @POST("auth/update-profile-picture")
     suspend fun updateProfilePicture(
         @Header("Authorization") token: String,

@@ -7,6 +7,7 @@
     <string name="my_favorites">Favorilerim</string>
     <string name="sifre">Şifre</string>
     <string name="tarif_adi">Tarif Adı</string>
+    <string name="no_results_found">Sonuç bulunamadı</string>
     <string name="yapay_zeka_ile_tarif_olustur">Yapay Zeka İle Tarif Oluştur</string>
     <string name="kaydol">Kayıt Ol</string>
     <string name="yeni_sifre">Yeni Şifre</string>
@@ -70,6 +71,25 @@
     <string name="forgot_password_success">Email gönderildi!</string>
     <string name="forgot_password_error">Email gönderilemedi</string>
     <string name="email_label">Email</string>
+
+    <string name="baglanti_hatasi">Bağlantı hatası</string>
+    <string name="yanit_bos">Yanıt Boş</string>
+    <string name="bilinmeyen_hata">Bilinmeyen hata</string>
+    <string name="email_gonderilemedi">Email gönderilemedi</string>
+    <string name="sifre_sifirlanamadi">Şifre Sıfırlanamadı</string>
+    <string name="google_giris_basarisiz">Google Giriş Başarısız</string>
+    <string name="token_bulunamadi">Token Bulunamadı</string>
+    <string name="tarifler_yuklenemedi">Tarifler Yüklenemedi</string>
+    <string name="tarif_yuklenemedi">Tarif Yüklenemedi</string>
+    <string name="mealDbde_tarifler_bulunamadi">MealDb Tarifler Bulunamadı</string>
+    <string name="mealDb_tarif_getirilemedi">MealDb Tarif Getiremedi</string>
+
+
+    <string name="cat_chicken">Tavuk</string>
+    <string name="cat_beef">Dana</string>
+    <string name="cat_pasta">Makarna</string>
+    <string name="cat_seafood">Deniz Ürünleri</string>
+    <string name="cat_dessert">Tatlı</string>
 
 
 </resources>

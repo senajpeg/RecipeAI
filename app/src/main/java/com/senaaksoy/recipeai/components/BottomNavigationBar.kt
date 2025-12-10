@@ -35,7 +35,6 @@ fun BottomNavigationBar(navController: NavHostController, currentRoute: String) 
             val selectedColor = Color(0xFF1565C0)
             val unselectedColor = Color.White
 
-            // 🏠 Ana Sayfa
             NavigationBarItem(
                 selected = currentRoute == Screen.HomeScreen.route,
                 onClick = { navController.navigate(Screen.HomeScreen.route) },
@@ -53,8 +52,6 @@ fun BottomNavigationBar(navController: NavHostController, currentRoute: String) 
                     )
                 }
             )
-
-            // ⭐ Favoriler
             NavigationBarItem(
                 selected = currentRoute == Screen.FavoritesScreen.route,
                 onClick = { navController.navigate(Screen.FavoritesScreen.route) },
@@ -72,8 +69,6 @@ fun BottomNavigationBar(navController: NavHostController, currentRoute: String) 
                     )
                 }
             )
-
-            // 👤 Profil
             NavigationBarItem(
                 selected = currentRoute == Screen.ProfileScreen.route,
                 onClick = { navController.navigate(Screen.ProfileScreen.route) },

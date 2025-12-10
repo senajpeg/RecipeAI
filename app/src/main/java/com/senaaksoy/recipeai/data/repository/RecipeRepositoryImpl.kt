@@ -163,62 +163,7 @@ class RecipeRepositoryImpl @Inject constructor(
         }
     }
 
-    suspend fun searchRecipes(query: String): Resource<List<Recipe>> {
-        return try {
-            if (query.isBlank()) {
-                return syncRecipesFromApi()
-            }
 
-            val response = mealDbApi.searchMeals(query)
-
-            if (response.isSuccessful && response.body()?.meals != null) {
-                val recipes = response.body()!!.meals
-                    ?.mapNotNull { mealDto ->
-                        try {
-                            val recipe = mealDto.toRecipe()
-
-                            // ✅ İsmi çevir
-                            val translatedName = try {
-                                translationManager.translate(recipe.name)
-                            } catch (e: Exception) {
-                                Log.e("RecipeRepository", "⚠️ İsim çeviri hatası: ${e.message}")
-                                recipe.name
-                            }
-
-                            // ✅ Malzemeleri çevir
-                            val translatedIngredients = try {
-                                recipe.ingredients?.map { ingredient ->
-                                    try {
-                                        translationManager.translate(ingredient)
-                                    } catch (e: Exception) {
-                                        ingredient
-                                    }
-                                } ?: emptyList()
-                            } catch (e: Exception) {
-                                recipe.ingredients ?: emptyList()
-                            }
-
-                            recipe.copy(
-                                name = translatedName,
-                                ingredients = translatedIngredients
-                            )
-                        } catch (e: Exception) {
-                            null
-                        }
-                    } ?: emptyList()
-
-                if (recipes.isNotEmpty()) {
-                    Resource.Success(recipes)
-                } else {
-                    Resource.Error("'$query' için tarif bulunamadı")
-                }
-            } else {
-                Resource.Error("Arama başarısız")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Arama hatası")
-        }
-    }
 
     suspend fun getRandomRecipes(count: Int = 3): Resource<List<Recipe>> {
         return try {
