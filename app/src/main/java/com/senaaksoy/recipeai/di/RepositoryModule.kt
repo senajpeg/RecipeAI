@@ -1,6 +1,5 @@
 package com.senaaksoy.recipeai.di
 
-import android.content.Context
 import com.google.gson.Gson
 import com.senaaksoy.recipeai.data.local.dao.RecipeDao
 import com.senaaksoy.recipeai.data.remote.api.FavoriteApi
@@ -10,14 +9,11 @@ import com.senaaksoy.recipeai.data.repository.FavoriteRepository
 import com.senaaksoy.recipeai.data.repository.GeminiRepository
 import com.senaaksoy.recipeai.data.repository.RecipeRepository
 import com.senaaksoy.recipeai.data.repository.RecipeRepositoryImpl
-import com.senaaksoy.recipeai.utills.StringProvider
-import com.senaaksoy.recipeai.utills.StringProviderImpl
 import com.senaaksoy.recipeai.utills.TokenManager
 import com.senaaksoy.recipeai.utills.TranslationManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
