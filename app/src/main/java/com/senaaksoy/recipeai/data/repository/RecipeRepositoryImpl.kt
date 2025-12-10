@@ -82,7 +82,6 @@ class RecipeRepositoryImpl @Inject constructor(
         return try {
             Log.d("RecipeRepository", "🔍 Tarif getiriliyor: $id")
 
-            // ✅ NEGATİF ID = BACKEND (Gemini tarifleri)
             if (id < 0) {
                 Log.d("RecipeRepository", "🤖 Backend/Gemini tarifine gidiliyor: $id")
 
@@ -100,7 +99,6 @@ class RecipeRepositoryImpl @Inject constructor(
                     return Resource.Error("Backend tarif getirilemedi: ${response.code()}")
                 }
             }
-            // ✅ POZİTİF ID = MEALDB
             else {
                 Log.d("RecipeRepository", "🍔 MealDB tarifine gidiliyor: $id")
 
@@ -111,7 +109,6 @@ class RecipeRepositoryImpl @Inject constructor(
                     if (meal != null) {
                         val recipe = meal.toRecipe()
 
-                        // ✅ İsim çevirisi
                         val translatedName = try {
                             translationManager.translate(recipe.name)
                         } catch (e: Exception) {
@@ -119,7 +116,6 @@ class RecipeRepositoryImpl @Inject constructor(
                             recipe.name
                         }
 
-                        // ✅ Talimat çevirisi
                         val translatedInstructions = try {
                             translationManager.translate(recipe.instructions)
                         } catch (e: Exception) {
@@ -127,14 +123,13 @@ class RecipeRepositoryImpl @Inject constructor(
                             recipe.instructions
                         }
 
-                        // ✅ MALZEMELERİ ÇEVİR
                         val translatedIngredients = try {
                             recipe.ingredients?.map { ingredient ->
                                 try {
                                     translationManager.translate(ingredient)
                                 } catch (e: Exception) {
                                     Log.e("RecipeRepository", "⚠️ Malzeme çeviri hatası: ${e.message}")
-                                    ingredient // Hata olursa orijinal malzemeyi kullan
+                                    ingredient
                                 }
                             } ?: emptyList()
                         } catch (e: Exception) {
@@ -146,7 +141,7 @@ class RecipeRepositoryImpl @Inject constructor(
                             recipe.copy(
                                 name = translatedName,
                                 instructions = translatedInstructions,
-                                ingredients = translatedIngredients  // ✅ ÇEVRİLMİŞ MALZEMELER
+                                ingredients = translatedIngredients
                             )
                         )
                     } else {
@@ -178,7 +173,6 @@ class RecipeRepositoryImpl @Inject constructor(
                             try {
                                 val recipe = mealDto.toRecipe()
 
-                                // ✅ İsmi çevir
                                 val translatedName = try {
                                     translationManager.translate(recipe.name)
                                 } catch (e: Exception) {
@@ -186,7 +180,6 @@ class RecipeRepositoryImpl @Inject constructor(
                                     recipe.name
                                 }
 
-                                // ✅ Malzemeleri çevir
                                 val translatedIngredients = try {
                                     recipe.ingredients?.map { ingredient ->
                                         try {
@@ -225,16 +218,8 @@ class RecipeRepositoryImpl @Inject constructor(
             Resource.Error(e.localizedMessage ?: "Hata oluştu")
         }
     }
-
     override suspend fun createRecipe(recipe: Recipe): Resource<Recipe> {
         return Resource.Error("Henüz desteklenmiyor")
     }
 
-    override suspend fun updateRecipe(recipe: Recipe): Resource<Recipe> {
-        return Resource.Error("Henüz desteklenmiyor")
-    }
-
-    override suspend fun deleteRecipe(recipe: Recipe): Resource<Unit> {
-        return Resource.Error("Henüz desteklenmiyor")
-    }
 }

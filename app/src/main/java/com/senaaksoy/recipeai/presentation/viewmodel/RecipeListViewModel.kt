@@ -1,6 +1,5 @@
 package com.senaaksoy.recipeai.presentation.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.senaaksoy.recipeai.data.remote.Resource
@@ -64,15 +63,12 @@ class RecipeListViewModel @Inject constructor(
         viewModelScope.launch {
             _searchResults.value = Resource.Loading()
 
-            // Kullanıcının Türkçe girdiği kelimeyi İngilizce'ye çevir
             val translatedQuery = translationManager.translate(query).lowercase().trim()
 
-            // Discover ve daily tarifleri birleştir
             val allRecipes = mutableListOf<Recipe>()
             (discoverRecipes.value as? Resource.Success)?.data?.let { allRecipes.addAll(it) }
             (dailySuggestions.value as? Resource.Success)?.data?.let { allRecipes.addAll(it) }
 
-            // Filtreleme: isim, malzemeler, talimat, description vs
             val filtered = allRecipes.filter { recipe ->
                 listOf(
                     recipe.name,
@@ -91,8 +87,4 @@ class RecipeListViewModel @Inject constructor(
         }
     }
 
-    fun clearSearch() {
-        _searchQuery.value = ""
-        _searchResults.value = null
-    }
 }

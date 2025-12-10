@@ -19,9 +19,6 @@ interface RecipeRepository {
     // Yeni tarif ekle (önce API, sonra local)
     suspend fun createRecipe(recipe: Recipe): Resource<Recipe>
 
-    // Tarif güncelle
-    suspend fun updateRecipe(recipe: Recipe): Resource<Recipe>
 
-    // Tarif sil
-    suspend fun deleteRecipe(recipe: Recipe): Resource<Unit>
+
 }

@@ -70,14 +70,13 @@ fun ProfileScreen(
 
     LaunchedEffect(userProfile) {
         val base64 = userProfile?.profile_picture
-        Log.d("ProfileScreen", "UserProfile changed")
-        Log.d("ProfileScreen", "Profile picture available: ${base64 != null}")
+
 
         if (!base64.isNullOrEmpty()) {
             val bitmap = ImageUtils.base64ToBitmap(base64)
             if (bitmap != null) {
                 profileBitmap = bitmap
-                Log.d("ProfileScreen", "Bitmap loaded successfully")
+
             }
         } else {
             profileBitmap = null
@@ -87,18 +86,21 @@ fun ProfileScreen(
     LaunchedEffect(profilePictureState) {
         when (val state = profilePictureState) {
             is Resource.Success -> {
-                showToast = "Profil fotoğrafı güncellendi"
+                showToast = context.getString(R.string.profil_fotografi_guncellendi)
                 isLoading = false
                 delay(500)
                 authViewModel.loadUserProfile()
             }
+
             is Resource.Error -> {
-                showToast = state.message ?: "Hata oluştu"
+                showToast = state.message ?: context.getString(R.string.hata_olustu)
                 isLoading = false
             }
+
             is Resource.Loading -> {
                 isLoading = true
             }
+
             else -> {
                 isLoading = false
             }
@@ -114,7 +116,7 @@ fun ProfileScreen(
                 if (base64 != null) {
                     authViewModel.updateProfilePicture(base64)
                 } else {
-                    showToast = "Fotoğraf yüklenemedi"
+                    showToast = context.getString(R.string.fotograf_yuklenemedi)
                 }
             }
         }
@@ -126,18 +128,18 @@ fun ProfileScreen(
         if (isGranted) {
             imagePickerLauncher.launch("image/*")
         } else {
-            showToast = "Galeri izni gerekli"
+            showToast = context.getString(R.string.galeri_izni_gerekli)
         }
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "background")
+    val infiniteTransition = rememberInfiniteTransition(label = stringResource(R.string.background))
     val offsetAnim by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1000f,
         animationSpec = infiniteRepeatable(
             animation = tween(6000, easing = LinearEasing)
         ),
-        label = "offset"
+        label = stringResource(R.string.offset)
     )
 
     Box(
@@ -163,7 +165,6 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Profil Fotoğrafı
             Box(
                 modifier = Modifier
                     .size(100.dp)
@@ -181,7 +182,7 @@ fun ProfileScreen(
                 if (profileBitmap != null) {
                     Image(
                         bitmap = profileBitmap!!.asImageBitmap(),
-                        contentDescription = "Profile Picture",
+                        contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
@@ -222,7 +223,6 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(40.dp))
 
-            // ✅ SADECE FAVORİLER KARTI KALDI
             ProfileInfoCard(
                 title = stringResource(R.string.my_favorites),
                 count = favoriteCount,
@@ -232,8 +232,6 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(40.dp))
         }
-
-        // Logout Button
         var pressed by remember { mutableStateOf(false) }
 
         val buttonScale by animateFloatAsState(
@@ -248,7 +246,7 @@ fun ProfileScreen(
             animationSpec = infiniteRepeatable(
                 animation = tween(6000, easing = LinearEasing)
             ),
-            label = "buttonGradient"
+            label = stringResource(R.string.button_gradient)
         )
 
         Button(
@@ -291,7 +289,8 @@ fun ProfileScreen(
 
     showToast?.let { message ->
         LaunchedEffect(message) {
-            android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT)
+                .show()
             delay(2000)
             showToast = null
         }
@@ -308,7 +307,7 @@ fun ProfileInfoCard(
     val animatedCount by animateIntAsState(
         targetValue = count,
         animationSpec = tween(durationMillis = 300),
-        label = "countAnimation"
+        label = stringResource(R.string.count_animation)
     )
 
     Column(

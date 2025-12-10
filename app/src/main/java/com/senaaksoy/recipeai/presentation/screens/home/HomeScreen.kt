@@ -105,7 +105,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- ARAMA VARSA SADECE ARAMA SONUÇLARINI GÖSTER ---
             if (searchResults != null) {
                 val recipesToShow = searchResults?.data ?: emptyList()
                 if (recipesToShow.isEmpty()) {
@@ -131,7 +130,6 @@ fun HomeScreen(
                     }
                 }
             } else {
-                // --- SEARCH YOKSA ESKİ YAPI ---
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = stringResource(R.string.daily_suggest),
@@ -155,7 +153,6 @@ fun HomeScreen(
                         val listState = rememberLazyListState()
                         var visibleIndex by remember { mutableIntStateOf(0) }
 
-                        // Auto-scroll + fade-in loop
                         LaunchedEffect(recipes) {
                             while (true) {
                                 delay(2200)

@@ -57,7 +57,6 @@ fun ForgotPasswordScreen(
     val context = LocalContext.current
     val forgotPasswordState by viewModel.forgotPasswordState.collectAsState()
 
-    // Forgot password state observer
     LaunchedEffect(forgotPasswordState) {
         when (forgotPasswordState) {
             is Resource.Success -> {
@@ -94,7 +93,6 @@ fun ForgotPasswordScreen(
                 )
             )
     ) {
-        // Back button
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
@@ -115,14 +113,12 @@ fun ForgotPasswordScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Icon
             Text(
                 text = "🔐",
                 fontSize = 80.sp,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // Title
             Text(
                 text = stringResource(R.string.forgot_password_title),
                 fontSize = 28.sp,
@@ -130,8 +126,6 @@ fun ForgotPasswordScreen(
                 color = Color.White,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-
-            // Description
             Text(
                 text = stringResource(R.string.forgot_password_description),
                 fontSize = 14.sp,
@@ -142,7 +136,6 @@ fun ForgotPasswordScreen(
                     .widthIn(max = 300.dp)
             )
 
-            // Email
             EditTextField(
                 value = viewModel.forgotPasswordEmail,
                 onValueChange = { viewModel.updateForgotPasswordEmail(it) },
@@ -167,7 +160,6 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Send button
             Button(
                 onClick = { viewModel.performForgotPassword() },
                 enabled = forgotPasswordState !is Resource.Loading,

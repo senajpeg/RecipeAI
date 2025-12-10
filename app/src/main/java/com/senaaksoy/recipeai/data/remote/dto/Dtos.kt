@@ -1,10 +1,9 @@
 package com.senaaksoy.recipeai.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
-import com.senaaksoy.recipeai.data.local.entity.RecipeEntity
 import com.senaaksoy.recipeai.domain.model.Recipe
 
-// -------------------- USER DTO --------------------
+//USER DTO
 
 data class UserDto(
     val id: Int,
@@ -13,39 +12,7 @@ data class UserDto(
     val createdAt: String
 )
 
-// -------------------- GEMINI MODELS --------------------
-
-data class Content(
-    @SerializedName("parts")
-    val parts: List<Part>
-)
-
-data class Part(
-    @SerializedName("text")
-    val text: String
-)
-
-data class GeminiResponse(
-    @SerializedName("candidates")
-    val candidates: List<Candidate>?
-)
-
-data class Candidate(
-    @SerializedName("content")
-    val content: ResponseContent?
-)
-
-data class ResponseContent(
-    @SerializedName("parts")
-    val parts: List<ResponsePart>?
-)
-
-data class ResponsePart(
-    @SerializedName("text")
-    val text: String?
-)
-
-// -------------------- AI GENERATED RECIPE --------------------
+//AI GENERATED RECIPE
 
 data class AiGeneratedRecipe(
     val name: String,
@@ -58,7 +25,7 @@ data class AiGeneratedRecipe(
     val canBeMade: Boolean = true
 )
 
-// ✅ AI → Recipe
+//AI → Recipe
 fun AiGeneratedRecipe.toRecipe(): Recipe {
     return Recipe(
         id = name.hashCode(),
@@ -73,7 +40,7 @@ fun AiGeneratedRecipe.toRecipe(): Recipe {
     )
 }
 
-// -------------------- MEAL DB MODELS --------------------
+//MEAL DB MODELS
 
 data class MealDbResponse(
     @SerializedName("meals")
@@ -145,7 +112,6 @@ data class MealDto(
     @SerializedName("strMeasure20") val measure20: String?
 )
 
-// ✅ Ölçülü malzemeler
 fun MealDto.getIngredientsWithMeasures(): List<String> {
     val ingredientsList = listOfNotNull(
         ingredient1, ingredient2, ingredient3, ingredient4, ingredient5,
@@ -176,7 +142,7 @@ fun MealDto.getIngredientsWithMeasures(): List<String> {
     return result
 }
 
-// ✅ Meal → Recipe
+//Meal → Recipe
 fun MealDto.toRecipe(): Recipe {
     val ingredients = getIngredientsWithMeasures()
 
@@ -197,7 +163,7 @@ fun MealDto.toRecipe(): Recipe {
     )
 }
 
-// -------------------- BACKEND RECIPE DTO --------------------
+//BACKEND RECIPE DTO
 
 data class RecipeDto(
     @SerializedName("id")

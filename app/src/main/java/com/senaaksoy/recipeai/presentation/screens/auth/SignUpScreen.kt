@@ -66,7 +66,6 @@ fun SignUpScreen(
     val registerState by authViewModel.registerState.collectAsState()
     val context = LocalContext.current
 
-    // Handle register state
     LaunchedEffect(registerState) {
         when (registerState) {
             is Resource.Success -> {

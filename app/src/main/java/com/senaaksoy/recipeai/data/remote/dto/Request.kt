@@ -23,14 +23,14 @@ data class RegisterRequest(
 data class ResetPasswordRequest(
     val password: String
 )
-//Google Sign-In Request
+
 data class GoogleSignInRequest(
     val idToken: String
 )
 data class UpdateProfilePictureRequest(
-    val profilePicture: String // Base64 string
+    val profilePicture: String
 )
-// Backend'e gönderilecek request modeli
+
 data class AddFavoriteRequest(
     val id: Int,
     val name: String,

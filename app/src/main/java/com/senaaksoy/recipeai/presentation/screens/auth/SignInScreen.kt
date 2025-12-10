@@ -72,15 +72,12 @@ fun SignInScreen(
     val loginState by viewModel.loginState.collectAsState()
     val googleSignInState by viewModel.googleSignInState.collectAsState()
 
-
-    //Google Sign-In Client
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestIdToken(context.getString(R.string.default_web_client_id))
         .requestEmail()
         .build()
     val googleSignInClient = GoogleSignIn.getClient(context, gso)
 
-    //Google Sign-In Launcher
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -101,7 +98,6 @@ fun SignInScreen(
         }
     }
 
-    // Login & Google state observer
     LaunchedEffect(loginState, googleSignInState) {
         when (loginState) {
             is Resource.Success -> {
@@ -122,7 +118,6 @@ fun SignInScreen(
             else -> {}
         }
 
-        // ⭐ Google Sign-In State
         when (googleSignInState) {
             is Resource.Success -> {
                 Toast.makeText(context, context.getString(R.string.toast_google_success), Toast.LENGTH_SHORT).show()
@@ -163,7 +158,6 @@ fun SignInScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Logo
             Icon(
                 painter = painterResource(R.drawable.recipeai_logo),
                 tint = Color.Unspecified,
@@ -171,7 +165,6 @@ fun SignInScreen(
                 modifier = Modifier.fillMaxWidth(0.6f)
             )
 
-            // Email
             EditTextField(
                 value = viewModel.signInEmail,
                 onValueChange = { viewModel.updateSignInEmail(it) },
@@ -194,7 +187,6 @@ fun SignInScreen(
                 colors = OutlinedTextFieldDefaults.colors(focusedLabelColor = Color.White)
             )
 
-            // Password
             EditTextField(
                 value = viewModel.signInPassword,
                 onValueChange = { viewModel.updateSignInPassword(it) },
@@ -232,7 +224,6 @@ fun SignInScreen(
                 colors = OutlinedTextFieldDefaults.colors(focusedLabelColor = Color.White)
             )
 
-            // Forgot password
             Text(
                 text = stringResource(R.string.sifremi_unuttum),
                 color = Color(0xFFaea0e4),
@@ -247,7 +238,6 @@ fun SignInScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Login button
             Button(
                 onClick = { viewModel.performSignIn() },
                 enabled = loginState !is Resource.Loading,
@@ -275,12 +265,10 @@ fun SignInScreen(
                 }
             }
 
-            // Google button
             Button(
                 onClick = {
                     Log.d("GoogleSignIn", "🔵 Google butonu tıklandı")
 
-                    // Google Sign-In öncesi logout
                     googleSignInClient.signOut().addOnCompleteListener {
                         Log.d("GoogleSignIn", "Çıkış yapıldı, şimdi sign-in intent başlatılıyor")
                         val signInIntent = googleSignInClient.signInIntent
@@ -307,7 +295,6 @@ fun SignInScreen(
                 Text(text = stringResource(R.string.google_ile_devam_et))
             }
 
-            // Sign up link
             TextButton(onClick = {
                 navController.navigate(Screen.SignUpScreen.route) {
                     popUpTo(Screen.SignInScreen.route) { inclusive = true }

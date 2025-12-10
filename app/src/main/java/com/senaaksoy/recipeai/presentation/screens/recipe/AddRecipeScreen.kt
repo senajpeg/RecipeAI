@@ -24,12 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.senaaksoy.recipeai.data.remote.dto.AiGeneratedRecipe
+import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.domain.model.Recipe
 import com.senaaksoy.recipeai.presentation.viewmodel.AddRecipeViewModel
 import com.senaaksoy.recipeai.presentation.viewmodel.FavoriteViewModel
@@ -40,7 +41,6 @@ fun AddRecipeScreen(
     viewModel: AddRecipeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-
     var ingredientInput by remember { mutableStateOf("") }
 
     Box(
@@ -62,7 +62,6 @@ fun AddRecipeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header
             item {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -76,13 +75,13 @@ fun AddRecipeScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "🤖 AI Tarif Oluşturucu",
+                        text = stringResource(R.string.ai_tarif_olusturucu),
                         style = MaterialTheme.typography.headlineMedium,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Elindeki malzemeleri gir, AI sana tarif oluştursun!",
+                        text = stringResource(R.string.malzeme_gir),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.9f),
                         textAlign = TextAlign.Center
@@ -90,7 +89,6 @@ fun AddRecipeScreen(
                 }
             }
 
-            // Malzeme ekleme kartı
             item {
                 Card(
                     modifier = Modifier
@@ -106,14 +104,13 @@ fun AddRecipeScreen(
                             .padding(20.dp)
                     ) {
                         Text(
-                            text = "📝 Malzemelerini Ekle",
+                            text = stringResource(R.string.malzeme_ekle),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF667EEA)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Malzeme input
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -121,7 +118,7 @@ fun AddRecipeScreen(
                             OutlinedTextField(
                                 value = ingredientInput,
                                 onValueChange = { ingredientInput = it },
-                                placeholder = { Text("Örn: Domates, Peynir...") },
+                                placeholder = { Text(stringResource(R.string.orn_domates_peynir)) },
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
@@ -142,7 +139,7 @@ fun AddRecipeScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = "Ekle",
+                                    contentDescription = null,
                                     tint = Color.White
                                 )
                             }
@@ -151,7 +148,6 @@ fun AddRecipeScreen(
                 }
             }
 
-            // Eklenen malzemeler listesi
             item {
                 AnimatedVisibility(
                     visible = state.ingredients.isNotEmpty(),
@@ -191,7 +187,6 @@ fun AddRecipeScreen(
                 }
             }
 
-            // Generate butonu
             item {
                 Button(
                     onClick = { viewModel.generateRecipe() },
@@ -212,10 +207,13 @@ fun AddRecipeScreen(
                             color = Color(0xFF667EEA)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("AI Tarif Oluşturuyor...", color = Color(0xFF667EEA))
+                        Text(
+                            stringResource(R.string.ai_tarif_olusturuyor),
+                            color = Color(0xFF667EEA)
+                        )
                     } else {
                         Text(
-                            "✨ Tarif Oluştur",
+                            stringResource(R.string.tarif_olustur),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF667EEA)
@@ -224,14 +222,12 @@ fun AddRecipeScreen(
                 }
             }
 
-            // Oluşturulan tarif
             item {
                 state.generatedRecipe?.let { recipe ->
                     GeneratedRecipeCard(recipe)
                 }
             }
 
-            // Error mesajı
             item {
                 state.error?.let { error ->
                     Card(
@@ -280,7 +276,7 @@ fun IngredientChip(text: String, onDelete: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "Sil",
+                contentDescription = null,
                 tint = Color(0xFF667EEA),
                 modifier = Modifier.size(18.dp)
             )
@@ -341,7 +337,7 @@ fun GeneratedRecipeCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "🍳",
+                        text = stringResource(R.string.search_icon),
                         style = MaterialTheme.typography.headlineMedium
                     )
                 }
@@ -360,14 +356,13 @@ fun GeneratedRecipeCard(
                     )
                 }
 
-                // FAVORİ YILDIZ
                 IconButton(
                     onClick = { favoriteViewModel.toggleFavorite(recipeModel) },
                     modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                        contentDescription = "Favori",
+                        contentDescription = null,
                         tint = if (isFavorite) Color(0xFFFFD700) else Color.Gray,
                         modifier = Modifier.size(32.dp)
                     )
@@ -388,7 +383,7 @@ fun GeneratedRecipeCard(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "📝 Malzemeler",
+                text = stringResource(R.string.malzemeler),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF667EEA)
@@ -409,7 +404,7 @@ fun GeneratedRecipeCard(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "👨‍🍳 Yapılışı",
+                text = stringResource(R.string.yapilisi),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF667EEA)
@@ -433,7 +428,7 @@ fun GeneratedRecipeCard(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "💡 Tavsiyeler",
+                            text = stringResource(R.string.tavsiyeler),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFFF6F00)
@@ -460,7 +455,7 @@ fun GeneratedRecipeCard(
                     )
                 ) {
                     Text(
-                        text = "⚠️ Bu tarifin tam olarak yapılabilmesi için yukarıdaki önerilere ihtiyacınız olabilir.",
+                        text = stringResource(R.string.tarif_uyari),
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFFD32F2F)

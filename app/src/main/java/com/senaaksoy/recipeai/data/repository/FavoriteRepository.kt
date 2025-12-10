@@ -98,7 +98,6 @@ class FavoriteRepository @Inject constructor(
             } else {
                 Log.d("FavoriteRepo", "Adding to favorites...")
 
-                // ✅ İNGREDIENTS DAHİL GÖNDER
                 val request = AddFavoriteRequest(
                     id = recipe.id,
                     name = recipe.name,
@@ -107,7 +106,7 @@ class FavoriteRepository @Inject constructor(
                     cookingTime = recipe.cookingTime,
                     difficulty = recipe.difficulty,
                     imageUrl = recipe.imageUrl,
-                    ingredients = recipe.ingredients  // ✅ EKLENDI
+                    ingredients = recipe.ingredients
                 )
 
                 Log.d("FavoriteRepo", "Request payload:")
@@ -124,8 +123,6 @@ class FavoriteRepository @Inject constructor(
                 _favoriteStates.value = _favoriteStates.value + (recipe.id to newState)
 
                 Log.d("FavoriteRepo", "✅ Toggle başarılı! Yeni durum: $newState")
-
-                // Favori listesini güncelle
                 loadFavorites()
 
                 Resource.Success(Unit)

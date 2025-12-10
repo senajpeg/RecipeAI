@@ -61,7 +61,6 @@ fun ResetPasswordScreen(
     val context = LocalContext.current
     val resetPasswordState by viewModel.resetPasswordState.collectAsState()
 
-    // Reset password state observer
     LaunchedEffect(resetPasswordState) {
         when (resetPasswordState) {
             is Resource.Success -> {
@@ -107,14 +106,12 @@ fun ResetPasswordScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Icon
             Text(
                 text = stringResource(R.string.lock),
                 fontSize = 80.sp,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // Title
             Text(
                 text = stringResource(R.string.reset_password_title),
                 fontSize = 28.sp,
@@ -122,8 +119,6 @@ fun ResetPasswordScreen(
                 color = Color.White,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-
-            // Description
             Text(
                 text = stringResource(R.string.reset_password_description),
                 fontSize = 14.sp,
@@ -132,7 +127,6 @@ fun ResetPasswordScreen(
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
-            // New Password
             EditTextField(
                 value = viewModel.resetPasswordNewPassword,
                 onValueChange = { viewModel.updateResetPasswordNewPassword(it) },
@@ -170,7 +164,6 @@ fun ResetPasswordScreen(
                 colors = OutlinedTextFieldDefaults.colors(focusedLabelColor = Color.White)
             )
 
-            // Confirm Password
             EditTextField(
                 value = viewModel.resetPasswordConfirmPassword,
                 onValueChange = { viewModel.updateResetPasswordConfirmPassword(it) },
@@ -210,7 +203,6 @@ fun ResetPasswordScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Reset button
             Button(
                 onClick = { viewModel.performResetPassword(token) },
                 enabled = resetPasswordState !is Resource.Loading,

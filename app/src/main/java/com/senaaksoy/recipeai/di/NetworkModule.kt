@@ -67,8 +67,8 @@ object NetworkModule {
         }
 
         return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)     // ✅ ÖNCE TOKEN EKLENİR
-            .addInterceptor(loggingInterceptor)  // ✅ SONRA LOG YAZDIRILIR
+            .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)

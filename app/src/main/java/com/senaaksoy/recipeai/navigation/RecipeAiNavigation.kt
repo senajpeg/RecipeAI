@@ -67,20 +67,19 @@ fun RecipeAiNavigation() {
                 BottomNavigationBar(navController = navController, currentRoute = currentRoute)
             }
         },
-        // ✅ FLOATING ACTION BUTTON
         floatingActionButton = {
             if (showFab) {
                 FloatingActionButton(
                     onClick = {
                         navController.navigate(Screen.AddRecipeScreen.route)
                     },
-                    containerColor = Color(0xFF667EEA), // Mor-mavi gradient ton
+                    containerColor = Color(0xFF667EEA),
                     contentColor = Color.White,
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Tarif Ekle",
+                        contentDescription = null,
                         modifier = Modifier.padding(4.dp)
                     )
                 }

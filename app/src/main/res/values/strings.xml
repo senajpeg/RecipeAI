@@ -83,6 +83,25 @@
     <string name="tarif_yuklenemedi">Tarif Yüklenemedi</string>
     <string name="mealDbde_tarifler_bulunamadi">MealDb Tarifler Bulunamadı</string>
     <string name="mealDb_tarif_getirilemedi">MealDb Tarif Getiremedi</string>
+    <string name="profil_fotografi_guncellendi">Profil fotoğrafı güncellendi</string>
+    <string name="hata_olustu">Hata Oluştu</string>
+    <string name="fotograf_yuklenemedi">Fotoğraf yüklenemedi</string>
+    <string name="galeri_izni_gerekli">Galeri izni gerekli</string>
+    <string name="background">background</string>
+    <string name="offset">offset</string>
+    <string name="button_gradient">buttonGradient</string>
+    <string name="count_animation">countAnimation</string>
+    <string name="ai_tarif_olusturucu">🤖 AI Tarif Oluşturucu</string>
+    <string name="malzeme_gir">Elindeki malzemeleri gir, AI sana tarif oluştursun!</string>
+    <string name="malzeme_ekle">📝 Malzemelerini Ekle</string>
+    <string name="orn_domates_peynir">Örn: Domates, Peynir...</string>
+    <string name="ai_tarif_olusturuyor">AI Tarif Oluşturuyor...</string>
+    <string name="tarif_olustur">✨ Tarif Oluştur</string>
+    <string name="search_icon">🍳</string>
+    <string name="malzemeler">📝 Malzemeler</string>
+    <string name="yapilisi">👨‍🍳 Yapılışı</string>
+    <string name="tavsiyeler">💡 Tavsiyeler</string>
+    <string name="tarif_uyari">⚠️ Bu tarifin tam olarak yapılabilmesi için yukarıdaki önerilere ihtiyacınız olabilir.</string>
 
 
     <string name="cat_chicken">Tavuk</string>
