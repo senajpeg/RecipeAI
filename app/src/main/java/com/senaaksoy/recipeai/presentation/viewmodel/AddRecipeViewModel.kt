@@ -99,7 +99,7 @@ class AddRecipeViewModel @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 val savedRecipe = response.body()!!
                 Log.d("AddRecipeVM", "✅ Tarif backend'e kaydedildi! ID: ${savedRecipe.id}")
-
+                Log.d("AddRecipeVM", "📌 BU ID POZİTİF Mİ NEGATİF Mİ KONTROL ET: ${savedRecipe.id}") // 👈 BUNU EKLEYİN
 
                 _state.value = _state.value.copy(
                     isLoading = false,

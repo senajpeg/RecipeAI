@@ -129,7 +129,7 @@ class RecipeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getRecipeById(id: Int): Resource<Recipe> {
-        return if (id < 0) {
+        return if (id < 0 || id > 50000000) {
             safeRecipeRepoCall(
                 operation = "🤖 Fetch backend recipe: $id",
                 transform = { dto: RecipeDto -> dto.toRecipe() },
