@@ -27,11 +27,11 @@ import com.senaaksoy.recipeai.presentation.screens.auth.ForgotPasswordScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.ResetPasswordScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignInScreen
 import com.senaaksoy.recipeai.presentation.screens.auth.SignUpScreen
-import com.senaaksoy.recipeai.presentation.screens.detail.RecipeDetailScreen
 import com.senaaksoy.recipeai.presentation.screens.favorite.FavoritesScreen
 import com.senaaksoy.recipeai.presentation.screens.home.HomeScreen
 import com.senaaksoy.recipeai.presentation.screens.profile.ProfileScreen
 import com.senaaksoy.recipeai.presentation.screens.recipe.AddRecipeScreen
+import com.senaaksoy.recipeai.presentation.screens.recipe.RecipeDetailScreen
 import com.senaaksoy.recipeai.presentation.screens.splash.SplashScreen
 
 @Composable
@@ -45,8 +45,7 @@ fun RecipeAiNavigation() {
 
     val showFab = currentRoute in listOf(
         Screen.HomeScreen.route,
-        Screen.FavoritesScreen.route,
-        Screen.ProfileScreen.route
+        Screen.FavoritesScreen.route
     )
 
     Scaffold(
@@ -104,7 +103,7 @@ fun RecipeAiNavigation() {
                 SignUpScreen(navController = navController)
             }
             composable(route = Screen.AddRecipeScreen.route) {
-                AddRecipeScreen(navController = navController)
+                AddRecipeScreen()
             }
             composable(
                 route = Screen.RecipeDetailScreen.route,

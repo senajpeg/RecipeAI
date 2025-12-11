@@ -3,11 +3,11 @@ package com.senaaksoy.recipeai.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.senaaksoy.recipeai.data.remote.Resource
 import com.senaaksoy.recipeai.data.remote.api.RecipeApiService
 import com.senaaksoy.recipeai.data.remote.dto.RecipeDto
 import com.senaaksoy.recipeai.data.repository.GeminiRepository
 import com.senaaksoy.recipeai.presentation.state.AddRecipeState
+import com.senaaksoy.recipeai.utills.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AddRecipeViewModel @Inject constructor(
     private val geminiRepository: GeminiRepository,
-    private val recipeApi: RecipeApiService  // ✅ BACKEND API EKLENDI
+    private val recipeApi: RecipeApiService
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddRecipeState())
@@ -54,7 +54,7 @@ class AddRecipeViewModel @Inject constructor(
                     val aiRecipe = result.data
 
                     if (aiRecipe != null) {
-                        // ✅ BACKEND'E KAYDET
+
                         saveRecipeToBackend(aiRecipe)
                     } else {
                         _state.value = _state.value.copy(
@@ -76,12 +76,10 @@ class AddRecipeViewModel @Inject constructor(
         }
     }
 
-    // ✅ YENİ: Backend'e tarif kaydetme
     private suspend fun saveRecipeToBackend(aiRecipe: com.senaaksoy.recipeai.data.remote.dto.AiGeneratedRecipe) {
         try {
             Log.d("AddRecipeVM", "🔵 Tarif backend'e kaydediliyor: ${aiRecipe.name}")
 
-            // ✅ Negatif ID kullan (Gemini tarifleri için)
             val recipeId = -System.currentTimeMillis().toInt()
 
             val recipeDto = RecipeDto(
@@ -102,18 +100,18 @@ class AddRecipeViewModel @Inject constructor(
                 val savedRecipe = response.body()!!
                 Log.d("AddRecipeVM", "✅ Tarif backend'e kaydedildi! ID: ${savedRecipe.id}")
 
-                // ✅ State'i güncelle - kaydedilen recipe'yi kullan
+
                 _state.value = _state.value.copy(
                     isLoading = false,
                     generatedRecipe = aiRecipe,
-                    savedRecipeId = savedRecipe.id,  // Kaydedilen ID'yi sakla
+                    savedRecipeId = savedRecipe.id,
                     error = null
                 )
             } else {
                 val errorBody = response.errorBody()?.string()
                 Log.e("AddRecipeVM", "❌ Backend kayıt hatası: $errorBody")
 
-                // Hata olsa bile AI recipe'yi göster ama uyarı ver
+
                 _state.value = _state.value.copy(
                     isLoading = false,
                     generatedRecipe = aiRecipe,
@@ -124,7 +122,7 @@ class AddRecipeViewModel @Inject constructor(
         } catch (e: Exception) {
             Log.e("AddRecipeVM", "❌ Backend kayıt exception: ${e.message}", e)
 
-            // Exception olsa bile AI recipe'yi göster
+
             _state.value = _state.value.copy(
                 isLoading = false,
                 generatedRecipe = aiRecipe,
@@ -133,11 +131,4 @@ class AddRecipeViewModel @Inject constructor(
         }
     }
 
-    fun resetState() {
-        _state.value = AddRecipeState()
-    }
-
-    fun clearError() {
-        _state.value = _state.value.copy(error = null)
-    }
 }

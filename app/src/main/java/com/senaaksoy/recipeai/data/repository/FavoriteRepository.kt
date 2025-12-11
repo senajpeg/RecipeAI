@@ -1,15 +1,17 @@
 package com.senaaksoy.recipeai.data.repository
 
 import android.util.Log
-import com.senaaksoy.recipeai.data.remote.Resource
 import com.senaaksoy.recipeai.data.remote.api.FavoriteApi
 import com.senaaksoy.recipeai.data.remote.dto.AddFavoriteRequest
+import com.senaaksoy.recipeai.data.remote.dto.RecipeDto
 import com.senaaksoy.recipeai.data.remote.dto.toRecipe
 import com.senaaksoy.recipeai.domain.model.Recipe
+import com.senaaksoy.recipeai.utills.Resource
 import com.senaaksoy.recipeai.utills.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,35 +32,53 @@ class FavoriteRepository @Inject constructor(
         Log.d("FavoriteRepo", "Token: ${token?.take(20)}...")
         return "Bearer $token"
     }
-
-    suspend fun loadFavorites(): Resource<List<Recipe>> {
+    private suspend fun <T, R> safeFavoriteCall(
+        operation: String,
+        transform: (T) -> R,
+        onSuccess: (R) -> Unit = {},
+        call: suspend () -> Response<T>
+    ): Resource<R> {
         return try {
-            Log.d("FavoriteRepo", "Loading favorites...")
-            val response = api.getFavorites(getAuthToken())
-
+            Log.d("FavoriteRepo", "Starting: $operation")
+            val response = call()
             Log.d("FavoriteRepo", "Response code: ${response.code()}")
 
             if (response.isSuccessful && response.body() != null) {
-                val recipes = response.body()!!.map { it.toRecipe() }
+                val rawData = response.body()!!
+                val transformedData = transform(rawData)
+                onSuccess(transformedData)
+                Log.d("FavoriteRepo", "✅ $operation successful")
+                Resource.Success(transformedData)
+            } else {
+                val errorBody = response.errorBody()?.string()
+                Log.e("FavoriteRepo", "❌ $operation failed: $errorBody")
+                Resource.Error("$operation başarısız: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Log.e("FavoriteRepo", "❌ $operation error: ${e.message}", e)
+            Resource.Error(e.localizedMessage ?: "Hata oluştu")
+        }
+    }
+
+    suspend fun loadFavorites(): Resource<List<Recipe>> {
+        return safeFavoriteCall(
+            operation = "Loading favorites",
+            transform = { dtoList: List<RecipeDto> ->
+                dtoList.map { it.toRecipe() }
+            },
+            onSuccess = { recipes ->
                 _favorites.value = recipes
 
                 val newStates = recipes.associate { it.id to true }
                 _favoriteStates.value = _favoriteStates.value + newStates
 
-                Log.d("FavoriteRepo", "✅ ${recipes.size} favori yüklendi")
+                Log.d("FavoriteRepo", "${recipes.size} favori yüklendi")
                 recipes.forEach {
                     Log.d("FavoriteRepo", "  - ${it.name} (${it.ingredients?.size ?: 0} malzeme)")
                 }
-
-                Resource.Success(recipes)
-            } else {
-                val errorBody = response.errorBody()?.string()
-                Log.e("FavoriteRepo", "❌ Error: $errorBody")
-                Resource.Error("Favoriler yüklenemedi: ${response.code()}")
             }
-        } catch (e: Exception) {
-            Log.e("FavoriteRepo", "❌ Exception: ${e.message}", e)
-            Resource.Error(e.localizedMessage ?: "Hata oluştu")
+        ) {
+            api.getFavorites(getAuthToken())
         }
     }
 
@@ -83,58 +103,53 @@ class FavoriteRepository @Inject constructor(
     }
 
     suspend fun toggleFavorite(recipe: Recipe): Resource<Unit> {
-        return try {
-            val currentlyFavorite = _favoriteStates.value[recipe.id] ?: false
+        val currentlyFavorite = _favoriteStates.value[recipe.id] ?: false
 
-            Log.d("FavoriteRepo", "=== TOGGLE FAVORITE ===")
-            Log.d("FavoriteRepo", "Recipe: ${recipe.name}")
-            Log.d("FavoriteRepo", "ID: ${recipe.id}")
-            Log.d("FavoriteRepo", "Current state: $currentlyFavorite")
-            Log.d("FavoriteRepo", "Ingredients: ${recipe.ingredients?.joinToString()}")
+        Log.d("FavoriteRepo", "=== TOGGLE FAVORITE ===")
+        Log.d("FavoriteRepo", "Recipe: ${recipe.name} (ID: ${recipe.id})")
+        Log.d("FavoriteRepo", "Current state: $currentlyFavorite → ${!currentlyFavorite}")
 
-            val response = if (currentlyFavorite) {
-                Log.d("FavoriteRepo", "Removing from favorites...")
+        val result = if (currentlyFavorite) {
+
+            safeFavoriteCall(
+                operation = "Removing favorite: ${recipe.name}",
+                transform = { _: Any -> Unit },
+                onSuccess = {
+                    _favoriteStates.value = _favoriteStates.value + (recipe.id to false)
+                }
+            ) {
                 api.removeFavorite(recipe.id, getAuthToken())
-            } else {
-                Log.d("FavoriteRepo", "Adding to favorites...")
+            }
+        } else {
+            val request = AddFavoriteRequest(
+                id = recipe.id,
+                name = recipe.name,
+                description = recipe.description,
+                instructions = recipe.instructions,
+                cookingTime = recipe.cookingTime,
+                difficulty = recipe.difficulty,
+                imageUrl = recipe.imageUrl,
+                ingredients = recipe.ingredients
+            )
 
-                val request = AddFavoriteRequest(
-                    id = recipe.id,
-                    name = recipe.name,
-                    description = recipe.description,
-                    instructions = recipe.instructions,
-                    cookingTime = recipe.cookingTime,
-                    difficulty = recipe.difficulty,
-                    imageUrl = recipe.imageUrl,
-                    ingredients = recipe.ingredients
-                )
+            Log.d("FavoriteRepo", "Request: ${request.name} with ${request.ingredients?.size ?: 0} ingredients")
 
-                Log.d("FavoriteRepo", "Request payload:")
-                Log.d("FavoriteRepo", "  - name: ${request.name}")
-                Log.d("FavoriteRepo", "  - ingredients: ${request.ingredients?.size ?: 0} items")
-
+            safeFavoriteCall(
+                operation = "Adding favorite: ${recipe.name}",
+                transform = { _: Any -> Unit },
+                onSuccess = {
+                    _favoriteStates.value = _favoriteStates.value + (recipe.id to true)
+                }
+            ) {
                 api.addFavorite(recipe.id, getAuthToken(), request)
             }
-
-            Log.d("FavoriteRepo", "Response code: ${response.code()}")
-
-            if (response.isSuccessful) {
-                val newState = !currentlyFavorite
-                _favoriteStates.value = _favoriteStates.value + (recipe.id to newState)
-
-                Log.d("FavoriteRepo", "✅ Toggle başarılı! Yeni durum: $newState")
-                loadFavorites()
-
-                Resource.Success(Unit)
-            } else {
-                val errorBody = response.errorBody()?.string()
-                Log.e("FavoriteRepo", "❌ Toggle failed: $errorBody")
-                Resource.Error("İşlem başarısız: ${response.code()}")
-            }
-        } catch (e: Exception) {
-            Log.e("FavoriteRepo", "❌ Toggle error: ${e.message}", e)
-            e.printStackTrace()
-            Resource.Error(e.localizedMessage ?: "Hata oluştu")
         }
+
+
+        if (result is Resource.Success) {
+            loadFavorites()
+        }
+
+        return result
     }
 }

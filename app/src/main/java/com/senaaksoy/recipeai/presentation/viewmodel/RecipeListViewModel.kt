@@ -2,9 +2,9 @@ package com.senaaksoy.recipeai.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.senaaksoy.recipeai.data.remote.Resource
 import com.senaaksoy.recipeai.data.repository.RecipeRepositoryImpl
 import com.senaaksoy.recipeai.domain.model.Recipe
+import com.senaaksoy.recipeai.utills.Resource
 import com.senaaksoy.recipeai.utills.TranslationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

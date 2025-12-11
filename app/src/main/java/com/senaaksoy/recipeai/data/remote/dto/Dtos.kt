@@ -3,17 +3,6 @@ package com.senaaksoy.recipeai.data.remote.dto
 import com.google.gson.annotations.SerializedName
 import com.senaaksoy.recipeai.domain.model.Recipe
 
-//USER DTO
-
-data class UserDto(
-    val id: Int,
-    val name: String,
-    val email: String,
-    val createdAt: String
-)
-
-//AI GENERATED RECIPE
-
 data class AiGeneratedRecipe(
     val name: String,
     val description: String,
@@ -25,20 +14,13 @@ data class AiGeneratedRecipe(
     val canBeMade: Boolean = true
 )
 
-//AI → Recipe
-fun AiGeneratedRecipe.toRecipe(): Recipe {
-    return Recipe(
-        id = name.hashCode(),
-        name = name,
-        description = description,
-        instructions = instructions,
-        cookingTime = cookingTime,
-        difficulty = difficulty,
-        imageUrl = null,
-        createdAt = System.currentTimeMillis(),
-        ingredients = ingredients
-    )
-}
+//user dto
+data class UserDto(
+    val id: Int,
+    val name: String,
+    val email: String,
+    val createdAt: String
+)
 
 //MEAL DB MODELS
 

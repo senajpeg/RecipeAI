@@ -20,7 +20,6 @@ class FavoriteViewModel @Inject constructor(
     val favorites: StateFlow<List<Recipe>> = repository.favorites
     val favoriteStates: StateFlow<Map<Int, Boolean>> = repository.favoriteStates
 
-    // ✅ Favori sayısı
     val favoriteCount: StateFlow<Int> = repository.favorites
         .map { it.size }
         .stateIn(

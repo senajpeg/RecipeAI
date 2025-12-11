@@ -59,3 +59,16 @@ fun Recipe.toEntity(): RecipeEntity {
         createdAt = createdAt
     )
 }
+fun AiGeneratedRecipe.toRecipe(): Recipe {
+    return Recipe(
+        id = name.hashCode(),
+        name = name,
+        description = description,
+        instructions = instructions,
+        cookingTime = cookingTime,
+        difficulty = difficulty,
+        imageUrl = null,
+        createdAt = System.currentTimeMillis(),
+        ingredients = ingredients
+    )
+}

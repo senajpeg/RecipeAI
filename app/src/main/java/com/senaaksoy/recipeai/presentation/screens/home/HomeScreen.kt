@@ -38,10 +38,10 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.components.EditTextField
-import com.senaaksoy.recipeai.data.remote.Resource
 import com.senaaksoy.recipeai.domain.model.Recipe
 import com.senaaksoy.recipeai.navigation.Screen
 import com.senaaksoy.recipeai.presentation.viewmodel.RecipeListViewModel
+import com.senaaksoy.recipeai.utills.Resource
 import kotlinx.coroutines.delay
 
 @SuppressLint("ConfigurationScreenWidthHeight")

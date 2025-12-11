@@ -101,6 +101,12 @@
     <string name="malzemeler">📝 Malzemeler</string>
     <string name="yapilisi">👨‍🍳 Yapılışı</string>
     <string name="tavsiyeler">💡 Tavsiyeler</string>
+    <string name="bir_hata_olustu">Bir hata oluştu</string>
+    <string name="geri_don">Geri Dön</string>
+    <string name="aciklama">Açıklama</string>
+    <string name="malzemelerr">Malzemeler</string>
+    <string name="yapilisii">Yapılışı</string>
+    <string name="tik">✓</string>
     <string name="tarif_uyari">⚠️ Bu tarifin tam olarak yapılabilmesi için yukarıdaki önerilere ihtiyacınız olabilir.</string>
 
 

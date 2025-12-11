@@ -3,9 +3,9 @@ package com.senaaksoy.recipeai.presentation.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.senaaksoy.recipeai.data.remote.Resource
 import com.senaaksoy.recipeai.data.repository.RecipeRepository
 import com.senaaksoy.recipeai.presentation.state.RecipeDetailState
+import com.senaaksoy.recipeai.utills.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +23,6 @@ class RecipeDetailViewModel @Inject constructor(
     val state: StateFlow<RecipeDetailState> = _state.asStateFlow()
 
     init {
-        // recipeId'yi Int olarak al (String değil!)
         savedStateHandle.get<Int>("recipeId")?.let { recipeId ->
             loadRecipe(recipeId)
         }
@@ -52,7 +51,4 @@ class RecipeDetailViewModel @Inject constructor(
         }
     }
 
-    fun clearError() {
-        _state.value = _state.value.copy(error = null)
-    }
 }

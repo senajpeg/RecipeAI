@@ -12,10 +12,8 @@ interface MealDbApi {
         @Query("i") id: String
     ): Response<MealDbResponse>
 
-
     @GET("random.php")
     suspend fun getRandomMeal(): Response<MealDbResponse>
-
 
     @GET("filter.php")
     suspend fun getMealsByCategory(

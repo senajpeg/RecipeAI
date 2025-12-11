@@ -1,4 +1,4 @@
-package com.senaaksoy.recipeai.presentation.screens.detail
+package com.senaaksoy.recipeai.presentation.screens.recipe
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,6 +69,7 @@ fun RecipeDetailScreen(
                     color = Color.White
                 )
             }
+
             state.error != null -> {
                 Column(
                     modifier = Modifier
@@ -77,7 +79,7 @@ fun RecipeDetailScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = state.error ?: "Bir hata oluştu",
+                        text = state.error ?: stringResource(R.string.bir_hata_olustu),
                         color = Color.White,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -89,10 +91,11 @@ fun RecipeDetailScreen(
                             contentColor = Color(0xFF4A90E2)
                         )
                     ) {
-                        Text("Geri Dön")
+                        Text(stringResource(R.string.geri_don))
                     }
                 }
             }
+
             state.recipe != null -> {
                 val recipe = state.recipe!!
                 val isFavorite = favoriteStates[recipe.id] ?: false
@@ -101,7 +104,6 @@ fun RecipeDetailScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    // Resim Bölümü
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -114,7 +116,6 @@ fun RecipeDetailScreen(
                             modifier = Modifier.fillMaxSize()
                         )
 
-                        // Gradient overlay
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -138,13 +139,12 @@ fun RecipeDetailScreen(
                         ) {
                             Icon(
                                 imageVector = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                                contentDescription = "Favori",
+                                contentDescription = null,
                                 tint = if (isFavorite) Color(0xFFFFD700) else Color.Gray,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
 
-                        // Tarif Adı (Resmin üstünde)
                         Text(
                             text = recipe.name,
                             style = MaterialTheme.typography.headlineMedium,
@@ -156,7 +156,6 @@ fun RecipeDetailScreen(
                         )
                     }
 
-                    // İçerik Kartı
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -170,12 +169,10 @@ fun RecipeDetailScreen(
                         Column(
                             modifier = Modifier.padding(20.dp)
                         ) {
-                            // Bilgi Satırı (Süre ve Zorluk)
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
-                                // Süre
                                 if (recipe.cookingTime != null) {
                                     InfoChip(
                                         icon = Icons.Default.AccessTime,
@@ -183,8 +180,6 @@ fun RecipeDetailScreen(
                                         backgroundColor = Color(0xFFE3F2FD)
                                     )
                                 }
-
-                                // Zorluk
                                 if (recipe.difficulty != null) {
                                     InfoChip(
                                         icon = Icons.Default.Star,
@@ -196,9 +191,8 @@ fun RecipeDetailScreen(
 
                             Spacer(modifier = Modifier.height(20.dp))
 
-                            // Açıklama
                             if (!recipe.description.isNullOrBlank()) {
-                                SectionTitle("Açıklama")
+                                SectionTitle(stringResource(R.string.aciklama))
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = recipe.description,
@@ -209,9 +203,8 @@ fun RecipeDetailScreen(
                                 Spacer(modifier = Modifier.height(20.dp))
                             }
 
-                            // Malzemeler
                             if (!recipe.ingredients.isNullOrEmpty()) {
-                                SectionTitle("Malzemeler")
+                                SectionTitle(stringResource(R.string.malzemelerr))
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 recipe.ingredients.forEach { ingredient ->
@@ -221,12 +214,9 @@ fun RecipeDetailScreen(
 
                                 Spacer(modifier = Modifier.height(20.dp))
                             }
-
-                            // Yapılışı
-                            SectionTitle("Yapılışı")
+                            SectionTitle(stringResource(R.string.yapilisii))
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            // Talimatları satırlara böl ve numaralandır
                             val instructions = recipe.instructions
                                 ?.split("\r\n", "\n")
                                 ?.filter { it.isNotBlank() }
@@ -291,7 +281,7 @@ fun SectionTitle(title: String) {
         fontWeight = FontWeight.Bold,
         color = Color(0xFF1976D2)
     )
-    Divider(
+    HorizontalDivider(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 4.dp),
@@ -305,7 +295,6 @@ fun InstructionStep(stepNumber: Int, instruction: String) {
     Row(
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Numara
         Surface(
             shape = RoundedCornerShape(8.dp),
             color = Color(0xFF1976D2),
@@ -326,7 +315,6 @@ fun InstructionStep(stepNumber: Int, instruction: String) {
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Talimat metni
         Text(
             text = instruction,
             style = MaterialTheme.typography.bodyMedium,
@@ -347,7 +335,6 @@ fun IngredientItem(ingredient: String) {
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Checkbox ikonu
         Surface(
             shape = RoundedCornerShape(4.dp),
             color = Color(0xFF4CAF50),
@@ -358,7 +345,7 @@ fun IngredientItem(ingredient: String) {
                 modifier = Modifier.fillMaxSize()
             ) {
                 Text(
-                    text = "✓",
+                    text = stringResource(R.string.tik),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
@@ -368,7 +355,7 @@ fun IngredientItem(ingredient: String) {
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Malzeme adı
+
         Text(
             text = ingredient,
             style = MaterialTheme.typography.bodyMedium,

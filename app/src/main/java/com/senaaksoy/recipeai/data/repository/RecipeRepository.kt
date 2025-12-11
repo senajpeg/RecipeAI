@@ -1,7 +1,7 @@
 package com.senaaksoy.recipeai.data.repository
 
-import com.senaaksoy.recipeai.data.remote.Resource
 import com.senaaksoy.recipeai.domain.model.Recipe
+import com.senaaksoy.recipeai.utills.Resource
 import kotlinx.coroutines.flow.Flow
 
 

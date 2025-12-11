@@ -14,7 +14,7 @@ class AuthRepository @Inject constructor(
     private val tokenManager: TokenManager
 ) {
 
-    private suspend fun <T> safeApiCall(apiCall: suspend () -> T): Resource<T> {
+    private suspend fun <T> safeAuthCall(apiCall: suspend () -> T): Resource<T> {
         return withContext(Dispatchers.IO) {
             try {
                 val result = apiCall()
@@ -26,7 +26,7 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun register(name: String, email: String, password: String): Resource<User> =
-        safeApiCall {
+        safeAuthCall {
             val response = authApi.register(RegisterRequest(name, email, password))
             if (response.isSuccessful) {
                 val body = response.body() ?: throw Exception("Yanıt boş")
@@ -68,7 +68,7 @@ class AuthRepository @Inject constructor(
 
 
     suspend fun forgotPassword(email: String): Resource<String> =
-        safeApiCall {
+        safeAuthCall {
             val response = authApi.forgotPassword(ForgotPasswordRequest(email))
             if (response.isSuccessful) {
                 response.body()?.message ?: throw Exception("Yanıt boş")
@@ -78,7 +78,7 @@ class AuthRepository @Inject constructor(
         }
 
     suspend fun resetPassword(token: String, password: String): Resource<String> =
-        safeApiCall {
+        safeAuthCall {
             val response = authApi.resetPassword(token, ResetPasswordRequest(password))
             if (response.isSuccessful) {
                 response.body()?.message ?: throw Exception("Yanıt boş")
@@ -102,7 +102,6 @@ class AuthRepository @Inject constructor(
                         createdAt = body.user.createdAt
                     )
 
-                    // ✅ TOKEN ARTIK RESOURCE İÇİNDE
                     Resource.Success(user, body.token)
 
                 } else {
@@ -116,7 +115,7 @@ class AuthRepository @Inject constructor(
 
 
     suspend fun updateProfilePicture(base64Image: String): Resource<MessageResponse> =
-        safeApiCall {
+        safeAuthCall {
             val token = tokenManager.getToken() ?: throw Exception("Token bulunamadı")
             val response = authApi.updateProfilePicture(
                 token = "Bearer $token",
@@ -130,7 +129,7 @@ class AuthRepository @Inject constructor(
         }
 
     suspend fun getUserProfile(): Resource<UserProfileResponse> =
-        safeApiCall {
+        safeAuthCall {
             val token = tokenManager.getToken() ?: throw Exception("Token bulunamadı")
             val response = authApi.getUserProfile("Bearer $token")
             if (response.isSuccessful && response.body() != null) {

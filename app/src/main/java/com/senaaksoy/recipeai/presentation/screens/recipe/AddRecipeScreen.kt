@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.senaaksoy.recipeai.R
 import com.senaaksoy.recipeai.domain.model.Recipe
 import com.senaaksoy.recipeai.presentation.viewmodel.AddRecipeViewModel
@@ -37,7 +36,6 @@ import com.senaaksoy.recipeai.presentation.viewmodel.FavoriteViewModel
 
 @Composable
 fun AddRecipeScreen(
-    navController: NavController,
     viewModel: AddRecipeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
