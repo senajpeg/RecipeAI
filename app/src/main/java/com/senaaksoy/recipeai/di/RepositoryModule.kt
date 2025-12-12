@@ -1,5 +1,6 @@
 package com.senaaksoy.recipeai.di
 
+import androidx.work.WorkManager
 import com.google.gson.Gson
 import com.senaaksoy.recipeai.data.local.dao.RecipeDao
 import com.senaaksoy.recipeai.data.remote.api.FavoriteApi
@@ -51,9 +52,10 @@ object RepositoryModule {
         api: FavoriteApi,
         tokenManager: TokenManager,
         dao: RecipeDao,
-        networkUtils: NetworkUtils
+        networkUtils: NetworkUtils,
+        workManager: WorkManager
     ): FavoriteRepository {
-        return FavoriteRepository(api, tokenManager, dao, networkUtils)
+        return FavoriteRepository(api, tokenManager, dao, networkUtils,workManager)
     }
 
 }

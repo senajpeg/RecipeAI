@@ -18,5 +18,5 @@ data class RecipeEntity(
     @TypeConverters(StringListConverter::class)
     val ingredients: List<String> = emptyList(),
     val createdAt: Long = System.currentTimeMillis(),
-    val isFavorite: Boolean = false
-)
+    val isFavorite: Boolean = false,
+    val isSynced: Boolean = true)

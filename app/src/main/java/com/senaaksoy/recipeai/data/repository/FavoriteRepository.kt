@@ -1,9 +1,12 @@
 package com.senaaksoy.recipeai.data.repository
 
 import android.util.Log
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import com.senaaksoy.recipeai.data.local.dao.RecipeDao
 import com.senaaksoy.recipeai.data.remote.api.FavoriteApi
-import com.senaaksoy.recipeai.data.remote.dto.AddFavoriteRequest
 import com.senaaksoy.recipeai.data.remote.dto.RecipeDto
 import com.senaaksoy.recipeai.data.remote.dto.toEntity
 import com.senaaksoy.recipeai.data.remote.dto.toRecipe
@@ -11,6 +14,7 @@ import com.senaaksoy.recipeai.domain.model.Recipe
 import com.senaaksoy.recipeai.utills.NetworkUtils
 import com.senaaksoy.recipeai.utills.Resource
 import com.senaaksoy.recipeai.utills.TokenManager
+import com.senaaksoy.recipeai.worker.FavoriteSyncWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,11 +34,11 @@ class FavoriteRepository @Inject constructor(
     private val api: FavoriteApi,
     private val tokenManager: TokenManager,
     private val dao: RecipeDao,
-    private val networkUtils: NetworkUtils
+    private val networkUtils: NetworkUtils,
+    private val workManager: WorkManager // ✅ WorkManager enjekte edildi
 ) {
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    // ✅ Room'dan direkt Flow olarak dinle
     val favorites: StateFlow<List<Recipe>> = dao.getFavoriteRecipes()
         .map { entities -> entities.map { it.toRecipe() } }
         .stateIn(
@@ -47,7 +51,6 @@ class FavoriteRepository @Inject constructor(
     val favoriteStates: StateFlow<Map<Int, Boolean>> = _favoriteStates
 
     init {
-        // Favori state'leri güncelle
         repositoryScope.launch {
             dao.getFavoriteRecipes().collect { entities ->
                 val states = entities.associate { it.id to true }
@@ -91,7 +94,10 @@ class FavoriteRepository @Inject constructor(
     suspend fun loadFavorites(): Resource<List<Recipe>> {
         if (!networkUtils.isNetworkAvailable()) {
             val currentFavorites = favorites.value
-            Log.d("FavoriteRepo", "🔴 İnternet yok, ${currentFavorites.size} favori Room'dan yüklendi")
+            Log.d(
+                "FavoriteRepo",
+                "🔴 İnternet yok, ${currentFavorites.size} favori Room'dan yüklendi"
+            )
 
             return if (currentFavorites.isNotEmpty()) {
                 Resource.Success(currentFavorites)
@@ -113,16 +119,30 @@ class FavoriteRepository @Inject constructor(
             val recipes = result.data ?: emptyList()
             Log.d("FavoriteRepo", "🌐 API'den ${recipes.size} favori geldi")
 
-            // Yeni favorileri kaydet
-            recipes.forEach { recipe ->
-                dao.insertRecipe(recipe.toEntity(isFavorite = true))
+
+            recipes.forEach { apiRecipe ->
+
+                val localRecipe = dao.getRecipeById(apiRecipe.id)
+
+                if (localRecipe != null && !localRecipe.isSynced) {
+
+                    Log.d(
+                        "FavoriteRepo",
+                        "🛡️ Sync bekleyen veri korundu, API'den gelen ezilmedi: ${localRecipe.name}"
+                    )
+                } else {
+
+                    dao.insertRecipe(apiRecipe.toEntity(isFavorite = true).copy(isSynced = true))
+                }
             }
 
-            // State'leri güncelle
             val newStates = recipes.associate { it.id to true }
             _favoriteStates.value = newStates
 
-            Log.d("FavoriteRepo", "✅ ${recipes.size} favori Room'a kaydedildi")
+            Log.d(
+                "FavoriteRepo",
+                "✅ Veritabanı akıllıca güncellendi (Conflict Resolution uygulandı)"
+            )
         }
 
         return result
@@ -131,34 +151,31 @@ class FavoriteRepository @Inject constructor(
     suspend fun checkFavorite(recipeId: Int): Boolean {
         val localRecipe = dao.getRecipeById(recipeId)
         val isFav = localRecipe?.isFavorite ?: false
-
         Log.d("FavoriteRepo", "🔍 Recipe $recipeId local favorite status: $isFav")
-
-        // State'i hemen güncelle
         _favoriteStates.value = _favoriteStates.value + (recipeId to isFav)
 
         if (!networkUtils.isNetworkAvailable() || localRecipe == null) {
             return isFav
         }
 
-        // API'den kontrol et (arka planda)
         repositoryScope.launch {
             try {
                 val response = api.isFavorite(recipeId, getAuthToken())
                 if (response.isSuccessful) {
                     val apiIsFav = response.body() ?: false
                     if (apiIsFav != isFav) {
-                        // API ile local farklıysa güncelle
                         dao.updateFavoriteStatus(recipeId, apiIsFav)
                         _favoriteStates.value = _favoriteStates.value + (recipeId to apiIsFav)
-                        Log.d("FavoriteRepo", "🔄 Recipe $recipeId favorite status API'den güncellendi: $apiIsFav")
+                        Log.d(
+                            "FavoriteRepo",
+                            "🔄 Recipe $recipeId favorite status API'den güncellendi: $apiIsFav"
+                        )
                     }
                 }
             } catch (e: Exception) {
                 Log.e("FavoriteRepo", "API check failed: ${e.message}")
             }
         }
-
         return isFav
     }
 
@@ -170,57 +187,31 @@ class FavoriteRepository @Inject constructor(
         Log.d("FavoriteRepo", "Recipe: ${recipe.name} (ID: ${recipe.id})")
         Log.d("FavoriteRepo", "State: $currentlyFavorite → $newState")
 
-        // ✅ ÖNCE LOCAL'İ GÜNCELLE (Anında UI güncellensin)
-        dao.insertRecipe(recipe.toEntity(isFavorite = newState))
+        // ✅ ÖNCE LOCAL'İ GÜNCELLE
+        // isSynced = false olarak işaretliyoruz
+        dao.insertRecipe(recipe.toEntity(isFavorite = newState).copy(isSynced = false))
+
         _favoriteStates.value = _favoriteStates.value + (recipe.id to newState)
 
-        // UI'ın güncellenmesi için kısa bir gecikme
         delay(100)
 
-        // İnternet yoksa sadece local'de kalsın
-        if (!networkUtils.isNetworkAvailable()) {
-            Log.d("FavoriteRepo", "🔴 İnternet yok, sadece Room güncellendi")
-            return Resource.Success(Unit)
-        }
+        // 🔄 OFFLINE-FIRST: WorkManager'a Devret
+        Log.d("FavoriteRepo", "🔄 Sync işlemi WorkManager'a devrediliyor...")
 
-        // İnternet varsa API'yi güncelle (arka planda)
-        repositoryScope.launch {
-            val result = if (currentlyFavorite) {
-                safeFavoriteCall(
-                    operation = "Removing favorite: ${recipe.name}",
-                    transform = { _: Any -> Unit }
-                ) {
-                    api.removeFavorite(recipe.id, getAuthToken())
-                }
-            } else {
-                val request = AddFavoriteRequest(
-                    id = recipe.id,
-                    name = recipe.name,
-                    description = recipe.description,
-                    instructions = recipe.instructions,
-                    cookingTime = recipe.cookingTime,
-                    difficulty = recipe.difficulty,
-                    imageUrl = recipe.imageUrl,
-                    ingredients = recipe.ingredients
-                )
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
 
-                safeFavoriteCall(
-                    operation = "Adding favorite: ${recipe.name}",
-                    transform = { _: Any -> Unit }
-                ) {
-                    api.addFavorite(recipe.id, getAuthToken(), request)
-                }
-            }
+        val syncRequest = OneTimeWorkRequest.Builder(FavoriteSyncWorker::class.java)
+            .setConstraints(constraints)
+            .build()
 
-            if (result is Resource.Error) {
-                // API hatası olursa local'i geri al
-                Log.e("FavoriteRepo", "❌ API hatası, local güncelleme geri alınıyor")
-                dao.insertRecipe(recipe.toEntity(isFavorite = currentlyFavorite))
-                _favoriteStates.value = _favoriteStates.value + (recipe.id to currentlyFavorite)
-            } else {
-                Log.d("FavoriteRepo", "✅ API güncellendi")
-            }
-        }
+        workManager.enqueue(syncRequest)
+
+        Log.d(
+            "FavoriteRepo",
+            "✅ WorkManager kuyruğuna eklendi (İnternet gelince senkronize olacak)"
+        )
 
         return Resource.Success(Unit)
     }

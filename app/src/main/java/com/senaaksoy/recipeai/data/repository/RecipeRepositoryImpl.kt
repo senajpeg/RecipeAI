@@ -26,6 +26,13 @@ class RecipeRepositoryImpl @Inject constructor(
     private val networkUtils: NetworkUtils
 ) : RecipeRepository {
 
+
+
+    override suspend fun clearLocalData() {
+        dao.deleteAllRecipes()
+    }
+
+
     private suspend fun <T, R> safeRecipeRepoCall(
         operation: String,
         transform: (T) -> R,

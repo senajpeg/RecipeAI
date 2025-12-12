@@ -7,12 +7,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkManager
 import com.senaaksoy.recipeai.data.remote.dto.MessageResponse
 import com.senaaksoy.recipeai.data.remote.dto.UserProfileResponse
 import com.senaaksoy.recipeai.domain.model.User
 import com.senaaksoy.recipeai.utills.Resource
 import com.senaaksoy.recipeai.utills.TokenManager
 import com.senaaksoy.recipeai.data.repository.AuthRepository
+import com.senaaksoy.recipeai.data.repository.RecipeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +24,10 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val repository: AuthRepository,
-    private val tokenManager: TokenManager
+    private val recipeRepository: RecipeRepository,
+    private val tokenManager: TokenManager,
+    private val workManager: WorkManager
+
 ) : ViewModel() {
 
     // States
@@ -142,7 +147,6 @@ class AuthViewModel @Inject constructor(
             tokenManager.saveUser(user.id, user.name, user.email)
         }
     }
-
 
 
     // ========== FORGOT PASSWORD ==========
@@ -360,8 +364,18 @@ class AuthViewModel @Inject constructor(
     }
 
     fun logout() {
-        tokenManager.clearAll()
-        clearAllStates()
+        viewModelScope.launch {
+            // 1. Veritabanını temizle
+            recipeRepository.clearLocalData()
+
+            // 2. Token ve State'leri temizle
+            tokenManager.clearAll()
+            clearAllStates()
+
+            // 3. Sync İşlemlerini İptal Et
+            workManager.cancelAllWork()
+            Log.d("AuthViewModel", "🔴 Çıkış yapıldı ve temizlik tamamlandı.")
+        }
     }
 
     fun isLoggedIn(): Boolean = tokenManager.isLoggedIn()
@@ -381,15 +395,14 @@ class AuthViewModel @Inject constructor(
                 is Resource.Success -> {
                     _userProfile.value = result.data
                 }
+
                 is Resource.Error -> {
                 }
+
                 is Resource.Loading -> {}
             }
         }
     }
-
-
-
 
 
     fun getUserName(): String {
@@ -399,17 +412,21 @@ class AuthViewModel @Inject constructor(
     fun getUserEmail(): String {
         return _userProfile.value?.email ?: tokenManager.getUserEmail() ?: "example@email.com"
     }
-    fun getProfilePicture(): String? {
-        return _userProfile.value?.profile_picture
-    }
-
 
 
     // STATE RESET
 
-    fun resetRegisterState() { _registerState.value = null }
-    fun resetLoginState() { _loginState.value = null }
-    fun resetGoogleSignInState() { _googleSignInState.value = null }
+    fun resetRegisterState() {
+        _registerState.value = null
+    }
+
+    fun resetLoginState() {
+        _loginState.value = null
+    }
+
+    fun resetGoogleSignInState() {
+        _googleSignInState.value = null
+    }
 
     private fun clearAllStates() {
         // SignUp

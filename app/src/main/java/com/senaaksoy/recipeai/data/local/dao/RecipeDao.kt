@@ -41,4 +41,12 @@ interface RecipeDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM recipes WHERE id = :id)")
     suspend fun recipeExists(id: Int): Boolean
+    // Senkronize edilmemiş (internet bekleyen) tarifleri getir
+    @Query("SELECT * FROM recipes WHERE isSynced = 0")
+    suspend fun getUnsyncedRecipes(): List<RecipeEntity>
+
+    // İşlem tamamlanınca synced olarak işaretle
+    @Query("UPDATE recipes SET isSynced = 1 WHERE id = :id")
+    suspend fun markAsSynced(id: Int)
+
 }

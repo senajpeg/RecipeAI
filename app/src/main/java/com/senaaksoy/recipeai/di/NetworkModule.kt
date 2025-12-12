@@ -1,5 +1,7 @@
 package com.senaaksoy.recipeai.di
 
+import android.content.Context
+import androidx.work.WorkManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.senaaksoy.recipeai.data.remote.api.AuthApi
@@ -10,6 +12,7 @@ import com.senaaksoy.recipeai.utills.TokenManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -73,6 +76,11 @@ object NetworkModule {
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
+    }
+    @Provides
+    @Singleton
+    fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
+        return WorkManager.getInstance(context)
     }
 
     @Provides
