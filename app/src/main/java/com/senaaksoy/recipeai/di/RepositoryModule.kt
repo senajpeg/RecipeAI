@@ -9,6 +9,7 @@ import com.senaaksoy.recipeai.data.repository.FavoriteRepository
 import com.senaaksoy.recipeai.data.repository.GeminiRepository
 import com.senaaksoy.recipeai.data.repository.RecipeRepository
 import com.senaaksoy.recipeai.data.repository.RecipeRepositoryImpl
+import com.senaaksoy.recipeai.utills.NetworkUtils
 import com.senaaksoy.recipeai.utills.TokenManager
 import com.senaaksoy.recipeai.utills.TranslationManager
 import dagger.Module
@@ -28,9 +29,10 @@ object RepositoryModule {
         api: RecipeApiService,
         mealDbApi: MealDbApi,
         dao: RecipeDao,
-        translationManager: TranslationManager
+        translationManager: TranslationManager,
+        networkUtils: NetworkUtils
     ): RecipeRepository {
-        return RecipeRepositoryImpl(api, mealDbApi,dao,translationManager)
+        return RecipeRepositoryImpl(api, mealDbApi, dao, translationManager, networkUtils)
     }
 
 
@@ -47,9 +49,11 @@ object RepositoryModule {
     @Singleton
     fun provideFavoriteRepository(
         api: FavoriteApi,
-        tokenManager: TokenManager
+        tokenManager: TokenManager,
+        dao: RecipeDao,
+        networkUtils: NetworkUtils
     ): FavoriteRepository {
-        return FavoriteRepository(api, tokenManager )
+        return FavoriteRepository(api, tokenManager, dao, networkUtils)
     }
 
 }

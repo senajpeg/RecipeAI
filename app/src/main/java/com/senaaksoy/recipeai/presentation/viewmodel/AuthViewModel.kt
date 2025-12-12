@@ -128,7 +128,7 @@ class AuthViewModel @Inject constructor(
 
     private fun handleAuthSuccess(result: Resource.Success<User>) {
 
-        val token = result.token   // ✅ DOĞRU YER BURASI
+        val token = result.token
 
         Log.d("TOKEN_DEBUG", "GELEN TOKEN: $token")
 

@@ -28,9 +28,8 @@ class TranslationManager @Inject constructor() {
 
         translator = Translation.getClient(options)
 
-        // Model'i indir
         val conditions = DownloadConditions.Builder()
-            .requireWifi() // Sadece WiFi'da indir (opsiyonel)
+            .requireWifi()
             .build()
 
         translator?.downloadModelIfNeeded(conditions)
@@ -47,18 +46,18 @@ class TranslationManager @Inject constructor() {
         return try {
             if (text.isBlank()) return text
 
-            // Model henüz indirilmediyse bekle
+
             if (!isModelDownloaded) {
                 translator?.downloadModelIfNeeded()?.await()
                 isModelDownloaded = true
             }
 
-            // Çeviri yap
+
             translator?.translate(text)?.await() ?: text
 
         } catch (e: Exception) {
             Log.e("TranslationManager", "Translation failed: ${e.message}")
-            text // Hata durumunda orijinal metni döndür
+            text
         }
     }
 }

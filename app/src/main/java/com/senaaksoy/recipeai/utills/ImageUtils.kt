@@ -9,9 +9,6 @@ import android.util.Log
 import java.io.ByteArrayOutputStream
 
 object ImageUtils {
-    /**
-     * URI'yi Base64 string'e çevirir
-     */
     fun uriToBase64(context: Context, uri: Uri): String? {
         return try {
             val inputStream = context.contentResolver.openInputStream(uri)
@@ -23,10 +20,8 @@ object ImageUtils {
                 return null
             }
 
-            // Boyutu küçült (max 800x800)
             val scaledBitmap = scaleBitmap(bitmap, 800)
 
-            // JPEG formatında compress et
             val outputStream = ByteArrayOutputStream()
             scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
 
@@ -41,9 +36,6 @@ object ImageUtils {
         }
     }
 
-    /**
-     * Bitmap'i belirli bir boyuta ölçeklendirir
-     */
     private fun scaleBitmap(bitmap: Bitmap, maxSize: Int): Bitmap {
         val width = bitmap.width
         val height = bitmap.height
@@ -65,9 +57,6 @@ object ImageUtils {
         return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
     }
 
-    /**
-     * Base64 string'i Bitmap'e çevirir
-     */
     fun base64ToBitmap(base64: String?): Bitmap? {
         if (base64.isNullOrEmpty()) {
             Log.w("ImageUtils", "Base64 string is null or empty")
@@ -75,7 +64,6 @@ object ImageUtils {
         }
 
         return try {
-            // Tüm whitespace karakterlerini temizle
             var cleanBase64 = base64
                 .trim()
                 .replace("\n", "")
@@ -83,7 +71,6 @@ object ImageUtils {
                 .replace(" ", "")
                 .replace("\t", "")
 
-            // Data URI prefix'ini kaldır (varsa)
             if (cleanBase64.startsWith("data:image")) {
                 val commaIndex = cleanBase64.indexOf(",")
                 if (commaIndex != -1) {
@@ -95,11 +82,9 @@ object ImageUtils {
             Log.d("ImageUtils", "Attempting to decode base64 - length: ${cleanBase64.length}")
             Log.d("ImageUtils", "First 50 chars: ${cleanBase64.take(50)}")
 
-            // Base64 decode
             val bytes = Base64.decode(cleanBase64, Base64.DEFAULT)
             Log.d("ImageUtils", "Decoded ${bytes.size} bytes")
 
-            // Bitmap'e çevir
             val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
 
             if (bitmap == null) {

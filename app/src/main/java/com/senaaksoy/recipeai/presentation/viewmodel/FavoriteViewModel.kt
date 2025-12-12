@@ -1,5 +1,6 @@
 package com.senaaksoy.recipeai.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.senaaksoy.recipeai.data.repository.FavoriteRepository
@@ -24,28 +25,32 @@ class FavoriteViewModel @Inject constructor(
         .map { it.size }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Lazily,
+            started = SharingStarted.Eagerly,
             initialValue = 0
         )
 
     init {
+        Log.d("FavoriteViewModel", "🚀 ViewModel initialized")
         loadFavorites()
     }
 
     fun loadFavorites() {
         viewModelScope.launch {
+            Log.d("FavoriteViewModel", "📥 Loading favorites...")
             repository.loadFavorites()
         }
     }
 
     fun checkFavorite(recipeId: Int) {
         viewModelScope.launch {
+            Log.d("FavoriteViewModel", "🔍 Checking favorite: $recipeId")
             repository.checkFavorite(recipeId)
         }
     }
 
     fun toggleFavorite(recipe: Recipe) {
         viewModelScope.launch {
+            Log.d("FavoriteViewModel", "⭐ Toggling favorite: ${recipe.name}")
             repository.toggleFavorite(recipe)
         }
     }

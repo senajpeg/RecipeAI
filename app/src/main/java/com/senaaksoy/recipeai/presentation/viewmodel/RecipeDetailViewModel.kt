@@ -1,5 +1,6 @@
 package com.senaaksoy.recipeai.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,16 +25,20 @@ class RecipeDetailViewModel @Inject constructor(
 
     init {
         savedStateHandle.get<Int>("recipeId")?.let { recipeId ->
+            Log.d("RecipeDetailVM", "🔵 Loading recipe ID: $recipeId")
             loadRecipe(recipeId)
         }
     }
 
     private fun loadRecipe(recipeId: Int) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.value = _state.value.copy(isLoading = true, error = null)
+
+            Log.d("RecipeDetailVM", "⏳ Fetching recipe...")
 
             when (val result = repository.getRecipeById(recipeId)) {
                 is Resource.Success -> {
+                    Log.d("RecipeDetailVM", "✅ Recipe loaded: ${result.data?.name}")
                     _state.value = _state.value.copy(
                         recipe = result.data,
                         isLoading = false,
@@ -41,12 +46,15 @@ class RecipeDetailViewModel @Inject constructor(
                     )
                 }
                 is Resource.Error -> {
+                    Log.e("RecipeDetailVM", "❌ Error: ${result.message}")
                     _state.value = _state.value.copy(
                         isLoading = false,
                         error = result.message
                     )
                 }
-                is Resource.Loading -> { /* already handled */ }
+                is Resource.Loading -> {
+                    Log.d("RecipeDetailVM", "⏳ Still loading...")
+                }
             }
         }
     }

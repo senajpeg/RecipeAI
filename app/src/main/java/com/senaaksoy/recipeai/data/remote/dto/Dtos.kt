@@ -124,7 +124,8 @@ fun MealDto.getIngredientsWithMeasures(): List<String> {
     return result
 }
 
-//Meal → Recipe
+
+// Repository çevirirken handle edecek
 fun MealDto.toRecipe(): Recipe {
     val ingredients = getIngredientsWithMeasures()
 
@@ -132,7 +133,7 @@ fun MealDto.toRecipe(): Recipe {
         id = idMeal.toIntOrNull() ?: idMeal.hashCode(),
         name = name,
         description = category ?: "Lezzetli bir tarif",
-        instructions = instructions ?: "Tarif yükleniyor...",
+        instructions = instructions ?: "",
         cookingTime = null,
         difficulty = when {
             ingredients.size <= 5 -> "Kolay"
@@ -175,11 +176,3 @@ data class RecipeDto(
     @SerializedName("created_at")
     val createdAt: String?
 )
-
-
-
-
-
-
-
-

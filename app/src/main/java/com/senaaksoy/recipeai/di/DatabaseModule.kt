@@ -2,6 +2,8 @@ package com.senaaksoy.recipeai.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.senaaksoy.recipeai.data.local.RecipeDatabase
 import com.senaaksoy.recipeai.data.local.dao.RecipeDao
 import dagger.Module
@@ -24,7 +26,15 @@ object DatabaseModule {
             context,
             RecipeDatabase::class.java,
             "recipe_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .addCallback(object : RoomDatabase.Callback() {
+                override fun onCreate(db: SupportSQLiteDatabase) {
+                    super.onCreate(db)
+
+                }
+            })
+            .build()
     }
 
     @Provides

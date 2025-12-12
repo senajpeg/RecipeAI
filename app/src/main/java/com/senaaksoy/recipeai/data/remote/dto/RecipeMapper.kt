@@ -3,7 +3,7 @@ package com.senaaksoy.recipeai.data.remote.dto
 import com.senaaksoy.recipeai.data.local.entity.RecipeEntity
 import com.senaaksoy.recipeai.domain.model.Recipe
 
-// ✅ DTO -> DOMAIN (FAVORİ + DETAY EKRANI İÇİN)
+// DTO -> DOMAIN
 fun RecipeDto.toRecipe(): Recipe {
     return Recipe(
         id = id,
@@ -18,21 +18,8 @@ fun RecipeDto.toRecipe(): Recipe {
     )
 }
 
-// ✅ DTO -> ENTITY (ROOM KAYIT)
-fun RecipeDto.toEntity(): RecipeEntity {
-    return RecipeEntity(
-        id = id,
-        name = name,
-        description = description,
-        instructions = instructions,
-        cookingTime = cookingTime,
-        difficulty = difficulty,
-        imageUrl = imageUrl,
-        createdAt = System.currentTimeMillis()
-    )
-}
 
-// ✅ ENTITY -> DOMAIN (ROOM'DAN OKUMA)
+// ENTITY -> DOMAIN
 fun RecipeEntity.toRecipe(): Recipe {
     return Recipe(
         id = id,
@@ -42,12 +29,13 @@ fun RecipeEntity.toRecipe(): Recipe {
         cookingTime = cookingTime,
         difficulty = difficulty,
         imageUrl = imageUrl,
-        createdAt = createdAt
+        createdAt = createdAt,
+        ingredients = ingredients
     )
 }
 
-// ✅ DOMAIN -> ENTITY (ROOM'A YAZMA)
-fun Recipe.toEntity(): RecipeEntity {
+// DOMAIN -> ENTITY
+fun Recipe.toEntity(isFavorite: Boolean = false): RecipeEntity {
     return RecipeEntity(
         id = id,
         name = name,
@@ -56,19 +44,8 @@ fun Recipe.toEntity(): RecipeEntity {
         cookingTime = cookingTime,
         difficulty = difficulty,
         imageUrl = imageUrl,
-        createdAt = createdAt
-    )
-}
-fun AiGeneratedRecipe.toRecipe(): Recipe {
-    return Recipe(
-        id = name.hashCode(),
-        name = name,
-        description = description,
-        instructions = instructions,
-        cookingTime = cookingTime,
-        difficulty = difficulty,
-        imageUrl = null,
-        createdAt = System.currentTimeMillis(),
-        ingredients = ingredients
+        ingredients = ingredients,
+        createdAt = createdAt,
+        isFavorite = isFavorite
     )
 }
