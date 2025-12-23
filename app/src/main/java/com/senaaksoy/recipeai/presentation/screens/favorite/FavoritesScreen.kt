@@ -1,5 +1,6 @@
 package com.senaaksoy.recipeai.presentation.screens.favorite
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -34,6 +35,18 @@ fun FavoritesScreen(
     viewModel: FavoriteViewModel = hiltViewModel()
 ) {
     val favorites by viewModel.favorites.collectAsState()
+
+    LaunchedEffect(Unit) {
+        Log.d("FavoritesScreen", "🎬 Screen açıldı, loadFavorites() çağrılıyor")
+        viewModel.loadFavorites()
+    }
+
+    LaunchedEffect(favorites) {
+        Log.d("FavoritesScreen", "📊 Favorites listesi güncellendi: ${favorites.size} adet")
+        favorites.forEach {
+            Log.d("FavoritesScreen", "  - ${it.name} (ID: ${it.id})")
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -87,11 +100,15 @@ fun FavoritesScreen(
                     FavoriteRecipeCard(
                         recipe = recipe,
                         onClick = {
+                            Log.d("FavoritesScreen", "🔗 Tarif detayına gidiliyor: ${recipe.name}")
                             navController.navigate(
                                 Screen.createRecipeDetailRoute(recipe.id)
                             )
                         },
-                        onRemove = { viewModel.toggleFavorite(recipe) }
+                        onRemove = {
+                            Log.d("FavoritesScreen", "🗑️ Silme isteği: ${recipe.name}")
+                            viewModel.toggleFavorite(recipe)
+                        }
                     )
                 }
             }
@@ -107,7 +124,6 @@ fun FavoriteRecipeCard(
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // ✅ Silme onay dialogu
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -127,6 +143,7 @@ fun FavoriteRecipeCard(
             confirmButton = {
                 Button(
                     onClick = {
+                        Log.d("FavoriteRecipeCard", "✅ Silme onaylandı: ${recipe.name}")
                         onRemove()
                         showDeleteDialog = false
                     },
@@ -138,7 +155,10 @@ fun FavoriteRecipeCard(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(onClick = {
+                    Log.d("FavoriteRecipeCard", "❌ Silme iptal edildi")
+                    showDeleteDialog = false
+                }) {
                     Text("İptal", color = Color(0xFF667EEA))
                 }
             },
@@ -203,12 +223,10 @@ fun FavoriteRecipeCard(
                 }
             }
 
-            // ✅ Yıldız ve Çöp Kutusu ikonları
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // ⭐ Yıldız ikonu
                 Icon(
                     imageVector = Icons.Filled.Star,
                     contentDescription = "Favori",
@@ -216,9 +234,11 @@ fun FavoriteRecipeCard(
                     modifier = Modifier.size(28.dp)
                 )
 
-                // 🗑️ Çöp kutusu ikonu
                 IconButton(
-                    onClick = { showDeleteDialog = true },
+                    onClick = {
+                        Log.d("FavoriteRecipeCard", "🗑️ Silme dialogu açılıyor: ${recipe.name}")
+                        showDeleteDialog = true
+                    },
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(

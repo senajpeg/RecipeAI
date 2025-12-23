@@ -365,6 +365,11 @@ class AuthViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
+
+            // 3. Sync İşlemlerini İptal Et
+            workManager.cancelAllWork()
+            Log.d("AuthViewModel", "🔴 Çıkış yapıldı ve temizlik tamamlandı.")
+
             // 1. Veritabanını temizle
             recipeRepository.clearLocalData()
 
@@ -372,9 +377,7 @@ class AuthViewModel @Inject constructor(
             tokenManager.clearAll()
             clearAllStates()
 
-            // 3. Sync İşlemlerini İptal Et
-            workManager.cancelAllWork()
-            Log.d("AuthViewModel", "🔴 Çıkış yapıldı ve temizlik tamamlandı.")
+
         }
     }
 

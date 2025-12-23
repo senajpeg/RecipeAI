@@ -7,61 +7,94 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.senaaksoy.recipeai.data.local.dao.RecipeDao
 import com.senaaksoy.recipeai.data.remote.api.FavoriteApi
-import com.senaaksoy.recipeai.data.remote.dto.AddFavoriteRequest
+import com.senaaksoy.recipeai.data.remote.dto.toAddFavoriteRequest
 import com.senaaksoy.recipeai.utills.TokenManager
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 
 @HiltWorker
 class FavoriteSyncWorker @AssistedInject constructor(
-    @Assisted context: Context,
-    @Assisted workerParams: WorkerParameters,
+    @Assisted appContext: Context,
+    @Assisted params: WorkerParameters,
     private val dao: RecipeDao,
     private val api: FavoriteApi,
     private val tokenManager: TokenManager
-) : CoroutineWorker(context, workerParams) {
+) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
-        val token = tokenManager.getToken() ?: return Result.failure()
-        val authHeader = "Bearer $token"
+        Log.d("FavoriteSyncWorker", "🔄 Sync başlatılıyor...")
 
+        val token = tokenManager.getToken()
+        if (token.isNullOrEmpty()) {
+            Log.e("FavoriteSyncWorker", "❌ Token bulunamadı, retry")
+            return Result.retry()
+        }
+
+        val authHeader = "Bearer $token"
         val unsyncedRecipes = dao.getUnsyncedRecipes()
 
-        if (unsyncedRecipes.isEmpty()) return Result.success()
+        Log.d("FavoriteSyncWorker", "📋 Sync bekleyen tarif sayısı: ${unsyncedRecipes.size}")
 
-        Log.d("FavoriteSyncWorker", "🔄 Sync başladı: ${unsyncedRecipes.size} tarif işleniyor...")
+        if (unsyncedRecipes.isEmpty()) {
+            Log.d("FavoriteSyncWorker", "✅ Sync edilecek tarif yok")
+            return Result.success()
+        }
 
-        return try {
-            unsyncedRecipes.forEach { recipe ->
+        var successCount = 0
+        var failCount = 0
+
+        unsyncedRecipes.forEach { recipe ->
+            try {
                 if (recipe.isFavorite) {
-                    // Ekleme Senaryosu
-                    val request = AddFavoriteRequest(
-                        id = recipe.id,
-                        name = recipe.name,
-                        description = recipe.description,
-                        instructions = recipe.instructions,
-                        cookingTime = recipe.cookingTime,
-                        difficulty = recipe.difficulty,
-                        imageUrl = recipe.imageUrl,
-                        ingredients = recipe.ingredients
+                    Log.d("FavoriteSyncWorker", "➕ Favoriye ekleniyor: ${recipe.name} (ID: ${recipe.id})")
+
+                    val response = api.addFavorite(
+                        recipe.id,
+                        authHeader,
+                        recipe.toAddFavoriteRequest()
                     )
-                    val response = api.addFavorite(recipe.id, authHeader, request)
+
                     if (response.isSuccessful) {
+                        Log.d("FavoriteSyncWorker", "✅ Backend'e eklendi: ${recipe.name}")
                         dao.markAsSynced(recipe.id)
-                        Log.d("FavoriteSyncWorker", "✅ Eklendi ve senkronize oldu: ${recipe.name}")
+                        successCount++
+                    } else if (response.code() == 409) {
+                        Log.d("FavoriteSyncWorker", "⚠️ Zaten var (409): ${recipe.name}")
+                        dao.markAsSynced(recipe.id)
+                        successCount++
+                    } else {
+                        Log.e("FavoriteSyncWorker", "❌ Backend hatası (${response.code()}): ${recipe.name}")
+                        failCount++
                     }
                 } else {
-                    // Silme Senaryosu
+                    Log.d("FavoriteSyncWorker", "➖ Favoriden siliniyor: ${recipe.name} (ID: ${recipe.id})")
+
                     val response = api.removeFavorite(recipe.id, authHeader)
-                    if (response.isSuccessful || response.code() == 404) {
+
+                    if (response.isSuccessful) {
+                        Log.d("FavoriteSyncWorker", "✅ Backend'den silindi: ${recipe.name}")
                         dao.markAsSynced(recipe.id)
-                        Log.d("FavoriteSyncWorker", "✅ Silindi ve senkronize oldu: ${recipe.name}")
+                        successCount++
+                    } else if (response.code() == 404) {
+                        Log.d("FavoriteSyncWorker", "⚠️ Zaten yok (404): ${recipe.name}")
+                        dao.markAsSynced(recipe.id)
+                        successCount++
+                    } else {
+                        Log.e("FavoriteSyncWorker", "❌ Backend hatası (${response.code()}): ${recipe.name}")
+                        failCount++
                     }
                 }
+            } catch (e: Exception) {
+                Log.e("FavoriteSyncWorker", "❌ Exception: ${recipe.name}", e)
+                failCount++
             }
+        }
+
+        Log.d("FavoriteSyncWorker", "📊 Sync sonucu - Başarılı: $successCount, Başarısız: $failCount")
+
+        return if (failCount == 0) {
             Result.success()
-        } catch (e: Exception) {
-            Log.e("FavoriteSyncWorker", "❌ Sync hatası", e)
+        } else {
             Result.retry()
         }
     }

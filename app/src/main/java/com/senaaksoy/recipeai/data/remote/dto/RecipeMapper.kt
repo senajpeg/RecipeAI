@@ -17,6 +17,18 @@ fun RecipeDto.toRecipe(): Recipe {
         ingredients = ingredients ?: emptyList()
     )
 }
+fun RecipeEntity.toAddFavoriteRequest(): AddFavoriteRequest {
+    return AddFavoriteRequest(
+        id = id,
+        name = name,
+        description = description,
+        instructions = instructions,
+        cookingTime = cookingTime,
+        difficulty = difficulty,
+        imageUrl = imageUrl,
+        ingredients = ingredients
+    )
+}
 
 
 // ENTITY -> DOMAIN

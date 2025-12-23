@@ -131,11 +131,16 @@ fun RecipeAiNavigation() {
                 arguments = listOf(
                     navArgument("token") {
                         type = NavType.StringType
+                        defaultValue=""
+                        nullable=true
                     }
                 ),
                 deepLinks = listOf(
                     navDeepLink {
                         uriPattern = "recipeai://reset-password/{token}"
+                    },
+                    navDeepLink {
+                        uriPattern = "http://10.0.2.2:3000/reset-password.html?token={token}"
                     }
                 )
             ) { backStackEntry ->

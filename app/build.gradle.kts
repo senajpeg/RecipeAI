@@ -60,8 +60,9 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
     // Hilt WorkManager entegrasyonu
-    implementation("androidx.hilt:hilt-work:1.1.0")
-    kapt("androidx.hilt:hilt-compiler:1.1.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
+
     //workManager
     implementation ("androidx.work:work-runtime-ktx:2.10.1")
     implementation ("androidx.core:core-ktx:1.12.0")
