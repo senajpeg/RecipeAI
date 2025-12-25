@@ -37,8 +37,6 @@
                 tools:node="remove" />
         </provider>
 
-
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -59,13 +57,14 @@
                     android:host="reset-password" />
             </intent-filter>
 
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http" />
-                <data android:host="10.0.2.2" />
-                <data android:pathPrefix="/reset-password.html" />
+                <data android:scheme="http"
+                    android:host="10.0.2.2"
+                    android:port="3000"
+                    android:pathPrefix="/reset-password.html" />
             </intent-filter>
 
         </activity>
